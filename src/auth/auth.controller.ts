@@ -6,6 +6,7 @@ import {
   Post,
   Req,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { LocalAuthGuard } from './guard/local-auth.guard';
 import { AuthenticatedGuard } from './guard/authenticated.guard';
@@ -13,12 +14,16 @@ import {
   ApiBadRequestResponse,
   ApiBody,
   ApiCookieAuth,
+  ApiExcludeEndpoint,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { User } from '../users/users.model';
+import { GoogleOauthGuard } from './guard/google-oauth.guard';
+import { AuthService } from './auth.service';
+import { UserNotFoundInterceptor } from './interceptor/user-not-found.interceptor';
 
 const SIGN_IN_REQUEST_BODY_OPTIONS = {
   schema: {
@@ -38,6 +43,8 @@ const SIGN_IN_REQUEST_BODY_OPTIONS = {
 @Controller('auth')
 @ApiTags('auth')
 export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
   @Post('/login')
   @UseGuards(LocalAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -58,5 +65,18 @@ export class AuthController {
   @ApiUnauthorizedResponse({ description: 'User is unauthorized' })
   logout(@Req() req) {
     req.logout();
+  }
+
+  @Get('/google')
+  @UseGuards(GoogleOauthGuard)
+  @ApiExcludeEndpoint()
+  googleAuth() {}
+
+  @Get('/google/redirect')
+  @UseGuards(GoogleOauthGuard)
+  @ApiExcludeEndpoint()
+  @UseInterceptors(UserNotFoundInterceptor)
+  googleRedirect(@Req() request) {
+    return this.authService.processGoogleData(request.user);
   }
 }

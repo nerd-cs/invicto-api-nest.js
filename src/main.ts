@@ -14,9 +14,8 @@ async function bootstrap() {
   setupSwagger(app);
   app.useGlobalPipes(new ValidationPipe());
 
-  await app.listen(PORT, HOST, () =>
-    Logger.log(`Application started on: ${HOST}:${PORT}`),
-  );
+  await app.listen(PORT, HOST);
+  Logger.log(`Application started on: ${await app.getUrl()}`);
 }
 
 function setupSessions(app: INestApplication) {
