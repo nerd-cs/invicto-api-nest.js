@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+  api:
+    container_name: invicto-api
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    ports:
+      - ${PORT}:${PORT}
+      - 9229:9229
+    command: npm run start
+    env_file:
+      - .prod.env
+    networks:
+      - webnet
+    depends_on:
+      - postgres
+  postgres:
+    container_name: invicto-db
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    networks:
+      - webnet
+    environment:
+      POSTGRES_PASSWORD: ${DB_PWD}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DB: ${DB_NAME}
+      PG_DATA: /var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+networks:
+  webnet:
+volumes:
+  pgdata:

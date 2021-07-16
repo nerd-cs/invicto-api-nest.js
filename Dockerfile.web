@@ -1,0 +1,27 @@
+FROM node:10 AS builder
+
+# Create app directory
+WORKDIR /app
+
+# A wildcard is used to ensure both package.json AND package-lock.json are copied
+COPY package*.json ./
+COPY *.env ./
+COPY tsconfig.* ./
+
+# Install app dependencies
+RUN npm install
+
+COPY . .
+
+RUN npm run build
+
+FROM node:10
+
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/tsconfig.* ./
+COPY --from=builder /app/.prod.env ./
+
+EXPOSE ${PORT}
+CMD [ "npm", "run", "start" ]
