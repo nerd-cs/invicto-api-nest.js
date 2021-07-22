@@ -70,6 +70,7 @@ export class AuthController {
   @Get('/google')
   @UseGuards(GoogleOauthGuard)
   @ApiExcludeEndpoint()
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   googleAuth() {}
 
   @Get('/google/redirect')

@@ -12,9 +12,11 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
 
   authenticate(req: any, options?: any) {
     const errorMessage = this.validateInput(req.body.email, req.body.password);
+
     if (errorMessage) {
       throw new BadRequestException(errorMessage);
     }
+
     super.authenticate(req, options);
   }
 
@@ -26,9 +28,11 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     if (!email) {
       return 'Email is required';
     }
+
     if (!isEmail(email)) {
       return 'Email has incorrect format';
     }
+
     if (!password) {
       return 'Password is required';
     }

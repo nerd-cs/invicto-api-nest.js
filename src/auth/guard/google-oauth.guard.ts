@@ -14,8 +14,10 @@ export class GoogleOauthGuard extends AuthGuard('google') {
       if (err instanceof EntityNotFoundException) {
         throw new UnauthorizedException('Associated account does not exist');
       }
+
       throw new HttpException(err, err['status'] || 500);
     }
+
     if (!user) {
       throw new UnauthorizedException();
     }
@@ -25,6 +27,7 @@ export class GoogleOauthGuard extends AuthGuard('google') {
 
   async canActivate(context: ExecutionContext): Promise<any> {
     const result = (await super.canActivate(context)) as boolean;
+
     if (result) {
       await super.logIn(context.switchToHttp().getRequest());
     }

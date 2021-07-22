@@ -23,6 +23,7 @@ export class GoogleOauthStrategy extends PassportStrategy(Strategy, 'google') {
     const { displayName, emails, photos } = profile;
     const email = emails.filter((email) => email.verified)[0].value;
     const user = await this.authService.validateOauthUser(email);
+
     user.fullName = displayName;
     user.profilePicture = photos[0].value;
     user['accessToken'] = accessToken;

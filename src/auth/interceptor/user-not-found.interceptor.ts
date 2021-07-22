@@ -22,6 +22,7 @@ export class UserNotFoundInterceptor implements NestInterceptor {
             new UnauthorizedException('Associated account does not exist'),
           );
         }
+
         return throwError(err);
       }),
     );

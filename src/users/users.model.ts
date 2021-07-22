@@ -2,15 +2,28 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   JoinTable,
   ManyToMany,
+  ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Role, TypeRole } from '../roles/roles.model';
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Card } from '../card/card.model';
+import { Company } from '../company/company.model';
+import { AccessGroup } from '../access-group/access-group.model';
 
+export enum TypeUserStatus {
+  PENDING = 'PENDING',
+  INCOMPLETE = 'INCOMPLETE',
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  ARCHIVED = 'ARCHIVED',
+}
 @Entity({ name: 'users' })
 export class User {
   @PrimaryGeneratedColumn()
@@ -59,6 +72,15 @@ export class User {
   @ApiModelProperty({ required: false })
   allowSso: boolean;
 
+  @Column({
+    type: 'enum',
+    enumName: 'TypeUserStatus',
+    enum: TypeUserStatus,
+    nullable: true,
+  })
+  @ApiProperty({ enumName: 'TypeUserStatus', enum: TypeUserStatus })
+  status: TypeUserStatus;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   createdAt: Date;
 
@@ -73,4 +95,14 @@ export class User {
   })
   @ApiProperty({ isArray: true, enumName: 'TypeRole', enum: TypeRole })
   roles: Role[];
+
+  @OneToMany(() => Card, (card) => card.user, { cascade: true })
+  cards: Card[];
+
+  @ManyToMany(() => AccessGroup, (accessGroup) => accessGroup.users)
+  accessGroups: AccessGroup[];
+
+  @ManyToOne(() => Company, (company) => company.users)
+  @JoinColumn([{ name: 'company_id', referencedColumnName: 'id' }])
+  company: Company;
 }

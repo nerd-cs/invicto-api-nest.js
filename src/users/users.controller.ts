@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Req,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -24,10 +25,12 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { User } from './users.model';
+import { Request } from 'express';
+import { EntityNotFoundInterceptor } from '../interceptor/entity-not-found.interceptor';
 
 @Controller('users')
 @UseGuards(RolesGuard)
-@UseInterceptors(EntityAlreadyExistsInterceptor)
+@UseInterceptors(EntityAlreadyExistsInterceptor, EntityNotFoundInterceptor)
 @ApiCookieAuth()
 @ApiTags('users')
 export class UsersController {
@@ -59,7 +62,7 @@ export class UsersController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  createUser(@Body() userDto: CreateUserDto) {
-    return this.userService.createUser(userDto);
+  createUser(@Body() userDto: CreateUserDto, @Req() request: Request) {
+    return this.userService.createUser(userDto, request.user);
   }
 }

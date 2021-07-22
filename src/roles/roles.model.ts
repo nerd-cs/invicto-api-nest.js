@@ -7,7 +7,6 @@ export enum TypeRole {
   'TIER_ADMIN',
   'ADMIN',
 }
-
 @Entity({ name: 'role' })
 export class Role {
   @PrimaryGeneratedColumn()
