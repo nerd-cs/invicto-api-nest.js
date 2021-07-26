@@ -38,3 +38,22 @@ INSERT INTO access_group(id, name, location_id)
 VALUES (default, 'Lobby', 2),
 (default, 'Main Entrance', 2),
 (default, 'Garage', 2);
+
+insert into door(id, name, status, location_id)
+values (default, 'Door 1', (SELECT status FROM unnest(enum_range(NULL::TYPE_DOOR_STATUS)) status ORDER BY random() LIMIT 1), floor(random()*4)+1),
+       (default, 'Door 2', (SELECT status FROM unnest(enum_range(NULL::TYPE_DOOR_STATUS)) status ORDER BY random() LIMIT 1), floor(random()*4)+1),
+       (default, 'Door 2', (SELECT status FROM unnest(enum_range(NULL::TYPE_DOOR_STATUS)) status ORDER BY random() LIMIT 1), floor(random()*4)+1),
+        (default, 'Door 3', (SELECT status FROM unnest(enum_range(NULL::TYPE_DOOR_STATUS)) status ORDER BY random() LIMIT 1), floor(random()*4)+1),
+        (default, 'Door 4', (SELECT status FROM unnest(enum_range(NULL::TYPE_DOOR_STATUS)) status ORDER BY random() LIMIT 1), floor(random()*4)+1),
+        (default, 'Door 5', (SELECT status FROM unnest(enum_range(NULL::TYPE_DOOR_STATUS)) status ORDER BY random() LIMIT 1), floor(random()*4)+1),
+        (default, 'Door 6', (SELECT status FROM unnest(enum_range(NULL::TYPE_DOOR_STATUS)) status ORDER BY random() LIMIT 1), floor(random()*4)+1),
+        (default, 'Door 7', (SELECT status FROM unnest(enum_range(NULL::TYPE_DOOR_STATUS)) status ORDER BY random() LIMIT 1), floor(random()*4)+1),
+        (default, 'Door 8', (SELECT status FROM unnest(enum_range(NULL::TYPE_DOOR_STATUS)) status ORDER BY random() LIMIT 1), floor(random()*4)+1),
+        (default, 'Door 9', (SELECT status FROM unnest(enum_range(NULL::TYPE_DOOR_STATUS)) status ORDER BY random() LIMIT 1), floor(random()*4)+1),
+        (default, 'Door 10', (SELECT status FROM unnest(enum_range(NULL::TYPE_DOOR_STATUS)) status ORDER BY random() LIMIT 1), floor(random()*4)+1),
+        (default, 'Door 11', (SELECT status FROM unnest(enum_range(NULL::TYPE_DOOR_STATUS)) status ORDER BY random() LIMIT 1), floor(random()*4)+1),
+        (default, 'Door 12', (SELECT status FROM unnest(enum_range(NULL::TYPE_DOOR_STATUS)) status ORDER BY random() LIMIT 1), floor(random()*4)+1),
+        (default, 'Door 13', (SELECT status FROM unnest(enum_range(NULL::TYPE_DOOR_STATUS)) status ORDER BY random() LIMIT 1), floor(random()*4)+1),
+        (default, 'Door 14', (SELECT status FROM unnest(enum_range(NULL::TYPE_DOOR_STATUS)) status ORDER BY random() LIMIT 1), floor(random()*4)+1),
+        (default, 'Door 15', (SELECT status FROM unnest(enum_range(NULL::TYPE_DOOR_STATUS)) status ORDER BY random() LIMIT 1), floor(random()*4)+1),
+        (default, 'Door 16', (SELECT status FROM unnest(enum_range(NULL::TYPE_DOOR_STATUS)) status ORDER BY random() LIMIT 1), floor(random()*4)+1);

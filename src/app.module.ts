@@ -11,6 +11,8 @@ import { AccessGroupModule } from './access-group/access-group.module';
 import { LocationModule } from './location/location.module';
 import { CompanyModule } from './company/company.module';
 import { CardModule } from './card/card.module';
+import { ZoneModule } from './zone/zone.module';
+import { DoorModule } from './door/door.module';
 
 @Module({
   imports: [
@@ -35,6 +37,8 @@ import { CardModule } from './card/card.module';
     LocationModule,
     CompanyModule,
     CardModule,
+    ZoneModule,
+    DoorModule,
   ],
   controllers: [AuthController, UsersController, AppController],
   providers: [],
