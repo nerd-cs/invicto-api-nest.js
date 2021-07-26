@@ -11,6 +11,6 @@ export class AssignLocationDto {
   @ArrayNotEmpty()
   @IsNumber({}, { each: true })
   @IsPositive({ each: true })
-  @ApiModelProperty({ isArray: true, required: true })
+  @ApiModelProperty({ isArray: true, type: 'integer', required: true })
   readonly accessGroupIds: number[];
 }

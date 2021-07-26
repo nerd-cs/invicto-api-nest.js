@@ -38,7 +38,7 @@ export class UpdateZoneDto {
   @ValidateIf(
     (dto) => (!dto.description && !dto.name && !dto.zoneIds) || dto.doorIds,
   )
-  @ApiModelProperty({ isArray: true, required: false })
+  @ApiModelProperty({ isArray: true, type: 'integer', required: false })
   readonly doorIds: number[];
 
   @IsArray()
@@ -48,6 +48,6 @@ export class UpdateZoneDto {
   @ValidateIf(
     (dto) => (!dto.description && !dto.name && !dto.doorIds) || dto.zoneIds,
   )
-  @ApiModelProperty({ isArray: true, required: false })
+  @ApiModelProperty({ isArray: true, type: 'integer', required: false })
   readonly zoneIds: number[];
 }

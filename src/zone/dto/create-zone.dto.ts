@@ -32,7 +32,7 @@ export class CreateZoneDto {
   @ArrayNotEmpty()
   @IsNumber({}, { each: true })
   @IsPositive({ each: true })
-  @ApiModelProperty({ isArray: true, required: false })
+  @ApiModelProperty({ isArray: true, type: 'integer', required: false })
   readonly doorIds: number[];
 
   @ValidateIf((dto) => !dto.doorIds || dto.zoneIds)
@@ -40,6 +40,6 @@ export class CreateZoneDto {
   @ArrayNotEmpty()
   @IsNumber({}, { each: true })
   @IsPositive({ each: true })
-  @ApiModelProperty({ isArray: true, required: false })
+  @ApiModelProperty({ isArray: true, type: 'integer', required: false })
   readonly zoneIds: number[];
 }
