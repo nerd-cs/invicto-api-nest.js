@@ -6,10 +6,12 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Location } from '../location/location.model';
 import { User } from '../users/users.model';
+import { Zone } from '../zone/zone.model';
 
 @Entity('access_group')
 export class AccessGroup {
@@ -44,4 +46,7 @@ export class AccessGroup {
     inverseJoinColumns: [{ name: 'user_id', referencedColumnName: 'id' }],
   })
   users: User[];
+
+  @OneToMany(() => Zone, (zone) => zone.location)
+  zones: Zone[];
 }
