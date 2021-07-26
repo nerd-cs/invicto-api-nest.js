@@ -4,9 +4,16 @@ import { User } from './users.model';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Role } from '../roles/roles.model';
 import { RolesModule } from '../roles/roles.module';
+import { AccessGroupModule } from '../access-group/access-group.module';
+import { CardModule } from '../card/card.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Role]), RolesModule],
+  imports: [
+    TypeOrmModule.forFeature([User, Role]),
+    RolesModule,
+    AccessGroupModule,
+    CardModule,
+  ],
   providers: [UsersService],
   exports: [UsersService],
 })

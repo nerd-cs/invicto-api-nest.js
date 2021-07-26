@@ -39,6 +39,7 @@ function setupSwagger(app: INestApplication) {
     .addCookieAuth()
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConf);
+
   SwaggerModule.setup(process.env.SWAGGER_PATH, app, document);
 }
 

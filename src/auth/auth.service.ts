@@ -14,6 +14,7 @@ export class AuthService {
   async validateUser(emailAddress: string, pwd: string) {
     const user = await this.userService.getUserByEmail(emailAddress);
     const passwordCorrect = await bcrypt.compare(pwd, user.password);
+
     if (!passwordCorrect) {
       throw new BadCredentialsException();
     }
@@ -23,11 +24,13 @@ export class AuthService {
 
   async validateOauthUser(emailAddress: string) {
     const user = await this.userService.getUserByEmail(emailAddress);
+
     return this.userService.sanitizeUserInfo(user);
   }
 
   async processGoogleData(userData: any) {
     const user = await this.userService.getUserByEmail(userData.email);
+
     user.fullName = userData.fullName;
     user.profilePicture = await this.getPicture(userData.profilePicture);
     const updated = await this.userService.updateUser(user);

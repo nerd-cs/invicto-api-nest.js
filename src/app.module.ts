@@ -7,6 +7,10 @@ import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RolesModule } from './roles/roles.module';
 import { AppController } from './app.controller';
+import { AccessGroupModule } from './access-group/access-group.module';
+import { LocationModule } from './location/location.module';
+import { CompanyModule } from './company/company.module';
+import { CardModule } from './card/card.module';
 
 @Module({
   imports: [
@@ -27,6 +31,10 @@ import { AppController } from './app.controller';
     AuthModule,
     UsersModule,
     RolesModule,
+    AccessGroupModule,
+    LocationModule,
+    CompanyModule,
+    CardModule,
   ],
   controllers: [AuthController, UsersController, AppController],
   providers: [],

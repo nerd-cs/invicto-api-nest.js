@@ -14,6 +14,7 @@ export class RolesGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest();
+
     if (!request.isAuthenticated() || !request.user) {
       throw new UnauthorizedException();
     }
@@ -22,11 +23,13 @@ export class RolesGuard implements CanActivate {
       KEY_ROLES,
       [context.getHandler(), context.getClass()],
     );
+
     if (!requiredRoles) {
       return true;
     }
 
     const user = request.user;
+
     return user.roles?.some((role) => requiredRoles.includes(role));
   }
 }

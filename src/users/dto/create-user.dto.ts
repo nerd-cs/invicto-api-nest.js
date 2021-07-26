@@ -1,5 +1,7 @@
 import { TypeRole } from '../../roles/roles.model';
 import {
+  ArrayNotEmpty,
+  IsArray,
   IsBoolean,
   IsEmail,
   IsEnum,
@@ -8,9 +10,13 @@ import {
   IsPhoneNumber,
   IsString,
   Matches,
+  ValidateNested,
 } from 'class-validator';
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 import { ApiProperty } from '@nestjs/swagger';
+import { AssignLocationDto } from './assign-location.dto';
+import { Type } from 'class-transformer';
+import { CreateCardDto } from '../../card/dto/create-card.dto';
 
 export class CreateUserDto {
   @IsEmail()
@@ -38,4 +44,23 @@ export class CreateUserDto {
   @IsOptional()
   @ApiModelProperty({ required: false })
   readonly allowSso: boolean;
+
+  @IsArray()
+  @ArrayNotEmpty()
+  @ValidateNested({ each: true })
+  @Type(() => AssignLocationDto)
+  @ApiModelProperty({ isArray: true, type: AssignLocationDto })
+  readonly locations: AssignLocationDto[];
+
+  @IsOptional()
+  @IsArray()
+  @ArrayNotEmpty()
+  @ValidateNested({ each: true })
+  @Type(() => CreateCardDto)
+  @ApiModelProperty({ isArray: true, type: CreateCardDto })
+  readonly cards: CreateCardDto[];
+
+  @IsBoolean()
+  @ApiModelProperty()
+  readonly instantlyInvite: boolean;
 }

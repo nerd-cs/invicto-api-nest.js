@@ -15,6 +15,7 @@ SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
+SET search_path TO public;
 
 --
 -- Name: type_role; Type: TYPE; Schema: public; Owner: postgres
@@ -71,8 +72,14 @@ CREATE TABLE public.user_role (
     role_id integer NOT NULL
 );
 
+create table company (
+	id serial not null,
+	name varchar not null,
+	primary key(id)
+);
 
 
+create type TYPE_USER_STATUS as enum ('PENDING',  'INCOMPLETE', 'ACTIVE', 'INACTIVE', 'ARCHIVED');
 --
 -- Name: users; Type: TABLE; Schema: public;
 --
@@ -90,10 +97,17 @@ CREATE TABLE public.users (
     city character varying,
     country character varying,
     allow_sso boolean DEFAULT false NOT NULL,
+    status type_user_status null,
+    company_id int not null,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    constraint fk_user_company_id
+    foreign key(company_id)
+    references company(id)
+    on delete no action
+    on update no action
 );
-
+create index fk_user_company_id_idx on users(company_id asc);
 
 --
 -- Name: users_id_seq; Type: SEQUENCE; Schema: public;
@@ -189,6 +203,73 @@ ALTER TABLE ONLY public.user_role
 ALTER TABLE ONLY public.user_role
     ADD CONSTRAINT fk_user_role_user FOREIGN KEY (user_id) REFERENCES public.users(id);
 
+
+create table location (
+	id serial not null,
+	name varchar not null,
+	company_id int not null,
+	primary key(id),
+	constraint fk_location_company
+		foreign key (company_id)
+		references company(id)
+		on delete no action
+		on update no action
+);
+create index fk_location_company_idx on location(company_id asc);
+
+create table access_group (
+	id serial not null,
+	name varchar not null,
+	description varchar null,
+	updated_at timestamp with time zone DEFAULT now() NOT NULL,
+	is_active boolean not null default true,
+	location_id int not null,
+	primary key(id),
+	constraint fk_access_group_location
+		foreign key (location_id)
+		references location(id)
+		on delete no action
+		on update no action
+);
+create index fk_access_group_location_idx on access_group(location_id asc);
+
+create table user_access_group (
+	user_id int not null,
+	access_group_id int not null,
+	primary key(user_id, access_group_id),
+	constraint fk_user_access_group_user
+		foreign key (user_id)
+		references users(id)
+		on delete no action
+		on update no action,
+	constraint fk_user_access_group_access_group
+		foreign key (access_group_id)
+		references access_group(id)
+		on delete no action
+		on update no action
+);
+create index fk_user_access_group_user_idx on user_access_group(user_id asc);
+create index fk_user_access_group_access_group_idx on user_access_group(access_group_id asc);
+
+create type TYPE_CARD_TYPE as enum ('KEY', 'MOBILE');
+
+create table card (
+	id serial not null,
+	type TYPE_CARD_TYPE not null,
+	card_number int null,
+	activation_date date not null default now(),
+	expiration_date date null,
+	is_active boolean not null default true,
+	created_at timestamp with time zone not null default now(),
+	user_id int not null, 
+	primary key(id),
+	constraint fk_card_user
+		foreign key (user_id)
+		references users(id)
+		on delete no action
+		on update no action
+);
+create index fk_card_user_idx on card(user_id asc);
 
 --
 -- PostgreSQL database dump complete

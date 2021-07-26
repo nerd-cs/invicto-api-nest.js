@@ -20,6 +20,7 @@ export class LocalAuthGuard extends AuthGuard('local') {
         throw err;
       }
     }
+
     return user;
   }
 
@@ -28,6 +29,7 @@ export class LocalAuthGuard extends AuthGuard('local') {
     const request = context.switchToHttp().getRequest();
 
     await super.logIn(request);
+
     return result;
   }
 }
