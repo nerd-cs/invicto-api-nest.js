@@ -20,13 +20,13 @@ import {
 import { isPositive } from 'class-validator';
 import { Roles } from '../auth/decorator/roles-auth.decorator';
 import { RolesGuard } from '../auth/guard/roles.guard';
-import { EntityNotFoundInterceptor } from '../interceptor/entity-not-found.interceptor';
+import { InvalidEntityInterceptor } from '../interceptor/invalid-entity.interceptor';
 import { TypeRole } from '../roles/roles.model';
 import { DoorService } from './door.service';
 
 @ApiCookieAuth()
 @ApiTags('door')
-@UseInterceptors(EntityNotFoundInterceptor)
+@UseInterceptors(InvalidEntityInterceptor)
 @UseGuards(RolesGuard)
 @Controller('door')
 export class DoorController {
