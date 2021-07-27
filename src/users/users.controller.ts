@@ -26,11 +26,11 @@ import {
 } from '@nestjs/swagger';
 import { User } from './users.model';
 import { Request } from 'express';
-import { EntityNotFoundInterceptor } from '../interceptor/entity-not-found.interceptor';
+import { InvalidEntityInterceptor } from '../interceptor/invalid-entity.interceptor';
 
 @Controller('users')
 @UseGuards(RolesGuard)
-@UseInterceptors(EntityAlreadyExistsInterceptor, EntityNotFoundInterceptor)
+@UseInterceptors(EntityAlreadyExistsInterceptor, InvalidEntityInterceptor)
 @ApiCookieAuth()
 @ApiTags('users')
 export class UsersController {

@@ -29,7 +29,7 @@ import {
 import { isPositive } from 'class-validator';
 import { Roles } from '../auth/decorator/roles-auth.decorator';
 import { RolesGuard } from '../auth/guard/roles.guard';
-import { EntityNotFoundInterceptor } from '../interceptor/entity-not-found.interceptor';
+import { InvalidEntityInterceptor } from '../interceptor/invalid-entity.interceptor';
 import { PaginationRequestDto } from '../pagination/pagination-request.dto';
 import { TypeRole } from '../roles/roles.model';
 import { CreateZoneDto } from './dto/create-zone.dto';
@@ -38,7 +38,7 @@ import { ZoneService } from './zone.service';
 
 @ApiCookieAuth()
 @ApiTags('zone')
-@UseInterceptors(EntityNotFoundInterceptor)
+@UseInterceptors(InvalidEntityInterceptor)
 @UseGuards(RolesGuard)
 @Controller('zone')
 export class ZoneController {
