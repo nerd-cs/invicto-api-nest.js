@@ -1,9 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { EntityAlreadyExistsException } from '../exception/entity-already-exists.exception';
 import { EntityNotFoundException } from '../exception/entity-not-found.exception';
 import { LocationService } from '../location/location.service';
+import { PaginationRequestDto } from '../pagination/pagination-request.dto';
+import { ScheduleService } from '../schedule/schedule.service';
+import { ZoneService } from '../zone/zone.service';
 import { AccessGroup } from './access-group.model';
+import { CreateAccessGroupDto } from './dto/create-access-group.dto';
+import { UpdateAccessGroupDto } from './dto/update-access-group.dto';
 
 @Injectable()
 export class AccessGroupService {
@@ -11,6 +17,8 @@ export class AccessGroupService {
     @InjectRepository(AccessGroup)
     private readonly accessGroupRepository: Repository<AccessGroup>,
     private readonly locationService: LocationService,
+    private readonly zoneService: ZoneService,
+    private readonly scheduleService: ScheduleService,
   ) {}
 
   async getAllByIds(ids: number[]): Promise<AccessGroup[]> {
@@ -32,5 +40,126 @@ export class AccessGroupService {
     return await this.accessGroupRepository.find({
       where: { location: location },
     });
+  }
+
+  async createAccessGroup(createAccessGroupDto: CreateAccessGroupDto) {
+    const { zoneSchedules, locationId, ...rest } = createAccessGroupDto;
+    const location = await this.locationService.getById(locationId);
+
+    await this.throwIfNameAlreadyTaken(createAccessGroupDto.name);
+
+    rest['zoneSchedules'] = zoneSchedules;
+    rest['location'] = location;
+
+    return await this.accessGroupRepository.save(rest);
+  }
+
+  async getAccessGroupsPage(paginationDto: PaginationRequestDto) {
+    const offset = (paginationDto.page - 1) * paginationDto.limit;
+
+    const accessGroupPage = await this.accessGroupRepository
+      .createQueryBuilder('access_group')
+      .leftJoinAndSelect('access_group.users', 'users')
+      .leftJoinAndSelect('access_group.zoneSchedules', 'zone_schedules')
+      .leftJoinAndSelect('zone_schedules.zone', 'zone')
+      .leftJoinAndSelect('zone_schedules.schedule', 'schedule')
+      .orderBy('access_group.name', 'ASC')
+      .skip(offset)
+      .take(paginationDto.limit)
+      .getMany();
+
+    const page = [];
+
+    accessGroupPage.forEach((accessGroup) => {
+      const { users, zoneSchedules, ...rest } = accessGroup;
+
+      rest['users'] = users.length;
+      const preparedZoneSchedules = [];
+
+      zoneSchedules.forEach((zoneSchedule) =>
+        preparedZoneSchedules.push({
+          zone: zoneSchedule.zone,
+          schedule: zoneSchedule.schedule,
+        }),
+      );
+      rest['zoneSchedules'] = preparedZoneSchedules;
+
+      page.push(rest);
+    });
+
+    return page;
+  }
+
+  async updateAccessGroup(updateAccessGroupDto: UpdateAccessGroupDto) {
+    const accessGroup = await this.getById(updateAccessGroupDto.id, undefined);
+
+    const { zoneSchedules, locationId, ...rest } = updateAccessGroupDto;
+
+    if (rest.name && rest.name !== accessGroup.name) {
+      await this.throwIfNameAlreadyTaken(updateAccessGroupDto.name);
+    }
+
+    if (zoneSchedules) {
+      const links = [];
+
+      zoneSchedules.forEach((zoneSchedule) => {
+        links.push({
+          zoneId: zoneSchedule.zoneId,
+          scheduleId: zoneSchedule.scheduleId,
+          accessGroupId: accessGroup.id,
+        });
+      });
+
+      await this.accessGroupRepository
+        .createQueryBuilder('access_group')
+        .insert()
+        .into('AccessGroupScheduleZone')
+        .values(links)
+        .execute();
+    }
+
+    if (locationId) {
+      rest['location'] = await this.locationService.getById(locationId);
+    }
+
+    return await this.accessGroupRepository.save(rest);
+  }
+
+  async deleteAccessGroup(accessGroupId: number) {
+    const accessGroup = await this.getById(accessGroupId, ['zoneSchedules']);
+
+    await this.accessGroupRepository
+      .createQueryBuilder()
+      .delete()
+      .from('AccessGroupScheduleZone')
+      .where('access_group_id = :accessGroupId', { accessGroupId })
+      .execute();
+
+    return await this.accessGroupRepository.remove(accessGroup);
+  }
+
+  async getById(accessGroupId: number, relations: string[]) {
+    const accessGroup = await this.accessGroupRepository.findOne(
+      accessGroupId,
+      {
+        relations: relations,
+      },
+    );
+
+    if (!accessGroup) {
+      throw new EntityNotFoundException({ accessGroupId: accessGroupId });
+    }
+
+    return accessGroup;
+  }
+
+  async throwIfNameAlreadyTaken(name: string) {
+    if (await this.findByName(name)) {
+      throw new EntityAlreadyExistsException({ name: name });
+    }
+  }
+
+  async findByName(name: string) {
+    return await this.accessGroupRepository.findOne({ where: { name: name } });
   }
 }

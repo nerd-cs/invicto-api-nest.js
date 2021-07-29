@@ -10,5 +10,6 @@ import { ZoneService } from './zone.service';
   imports: [TypeOrmModule.forFeature([Zone]), LocationModule, DoorModule],
   controllers: [ZoneController],
   providers: [ZoneService],
+  exports: [ZoneService],
 })
 export class ZoneModule {}

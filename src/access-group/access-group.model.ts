@@ -10,8 +10,10 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Location } from '../location/location.model';
+import { Schedule } from '../schedule/schedule.model';
 import { User } from '../users/users.model';
 import { Zone } from '../zone/zone.model';
+import { AccessGroupScheduleZone } from '../access-group-schedule-zone/access-group-schedule-zone.model';
 
 @Entity('access_group')
 export class AccessGroup {
@@ -49,4 +51,14 @@ export class AccessGroup {
 
   @OneToMany(() => Zone, (zone) => zone.location)
   zones: Zone[];
+
+  @OneToMany(() => Schedule, (schedule) => schedule.accessGroup)
+  schedules: Schedule[];
+
+  @OneToMany(
+    () => AccessGroupScheduleZone,
+    (accessGroupScheduleZone) => accessGroupScheduleZone.accessGroup,
+    { cascade: true },
+  )
+  zoneSchedules: AccessGroupScheduleZone[];
 }

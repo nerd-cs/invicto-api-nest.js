@@ -57,6 +57,19 @@ export class HolidayController {
     return this.holidayService.create(createHolidayDto);
   }
 
+  @ApiOperation({ summary: 'Get all holidays' })
+  @ApiOkResponse({ description: 'Successfully retrieved' })
+  @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
+  @ApiUnauthorizedResponse({ description: 'User is not authorized' })
+  @ApiForbiddenResponse({
+    description: "User doesn't have permissions to access this resource",
+  })
+  @Roles(TypeRole.ADMIN)
+  @Get()
+  getAllHolidays() {
+    return this.holidayService.getAllHolidays();
+  }
+
   @ApiOperation({ summary: 'Get list of holidays with pagination' })
   @ApiOkResponse({ description: 'Successfully retrieved' })
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })

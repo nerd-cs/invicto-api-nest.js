@@ -28,6 +28,24 @@ SELECT CURRVAL(pg_get_serial_sequence('users','id')), id
 FROM role
 WHERE value = 'ADMIN';
 
+INSERT INTO users(id,
+                  full_name,
+                  email,
+                  phone_number,
+                  password,
+                  company_id)
+VALUES (default,
+        'Test',
+        'test@test.com',
+        '+15145866598',
+        '$2y$12$BbwIaaySC0QfrDRMa2u2p.FdqPt9MDV.r1fbQj/qzznmjKfyT.aw.',
+        1);
+
+INSERT INTO user_role
+SELECT CURRVAL(pg_get_serial_sequence('users','id')), id
+FROM role
+WHERE value = 'ADMIN';
+
 INSERT INTO location(id, name, company_id)
 VALUES(default, 'Quebec Office', CURRVAL(pg_get_serial_sequence('company','id'))),
 	   (default, 'Quebec HQ', CURRVAL(pg_get_serial_sequence('company','id'))),

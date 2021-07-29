@@ -1,17 +1,15 @@
 import {
+  BadRequestException,
   Body,
+  Controller,
   Delete,
+  Get,
   HttpCode,
   HttpStatus,
   Param,
   ParseIntPipe,
   Post,
   Put,
-} from '@nestjs/common';
-import {
-  BadRequestException,
-  Controller,
-  Get,
   Query,
   UseGuards,
   UseInterceptors,
@@ -33,37 +31,19 @@ import { RolesGuard } from '../auth/guard/roles.guard';
 import { InvalidEntityInterceptor } from '../interceptor/invalid-entity.interceptor';
 import { PaginationRequestDto } from '../pagination/pagination-request.dto';
 import { TypeRole } from '../roles/roles.model';
-import { AccessGroupService } from './access-group.service';
-import { CreateAccessGroupDto } from './dto/create-access-group.dto';
-import { UpdateAccessGroupDto } from './dto/update-access-group.dto';
+import { CreateScheduleDto } from './dto/create-schedule.dto';
+import { UpdateScheduleDto } from './dto/update-schedule.dto';
+import { ScheduleService } from './schedule.service';
 
 @ApiCookieAuth()
-@ApiTags('access group')
-@Controller('accessgroup')
+@ApiTags('schedule')
 @UseInterceptors(InvalidEntityInterceptor)
 @UseGuards(RolesGuard)
-export class AccessGroupController {
-  constructor(private readonly accessGroupService: AccessGroupService) {}
+@Controller('schedule')
+export class ScheduleController {
+  constructor(private readonly scheduleService: ScheduleService) {}
 
-  @ApiOperation({ summary: 'Get all access groups for specified location' })
-  @ApiOkResponse({ description: 'Successfully retrieved' })
-  @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
-  @ApiUnauthorizedResponse({ description: 'User is not authorized' })
-  @ApiForbiddenResponse({
-    description: "User doesn't have permissions to access this resource",
-  })
-  @ApiQuery({ name: 'locationId', required: true })
-  @Roles(TypeRole.ADMIN)
-  @Get()
-  getAllForLocation(@Query('locationId', ParseIntPipe) locationId: number) {
-    if (!isPositive(locationId)) {
-      throw new BadRequestException('locationId must be a positive number');
-    }
-
-    return this.accessGroupService.getAllForLocation(locationId);
-  }
-
-  @ApiOperation({ summary: 'Create new access group' })
+  @ApiOperation({ summary: 'Create new schedule' })
   @ApiOkResponse({ description: 'Successfully created' })
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
   @ApiUnauthorizedResponse({ description: 'User is not authorized' })
@@ -73,11 +53,24 @@ export class AccessGroupController {
   @Roles(TypeRole.ADMIN)
   @HttpCode(HttpStatus.OK)
   @Post()
-  createAccessGroup(@Body() createAccessGroupDto: CreateAccessGroupDto) {
-    return this.accessGroupService.createAccessGroup(createAccessGroupDto);
+  createSchedule(@Body() createScheduleDto: CreateScheduleDto) {
+    return this.scheduleService.createSchedule(createScheduleDto);
   }
 
-  @ApiOperation({ summary: 'Get list of access groups with pagination' })
+  @ApiOperation({ summary: 'Get list of schedules' })
+  @ApiOkResponse({ description: 'Successfully retrieved' })
+  @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
+  @ApiUnauthorizedResponse({ description: 'User is not authorized' })
+  @ApiForbiddenResponse({
+    description: "User doesn't have permissions to access this resource",
+  })
+  @Roles(TypeRole.ADMIN)
+  @Get()
+  getSchedulesList() {
+    return this.scheduleService.getSchedulesList();
+  }
+
+  @ApiOperation({ summary: 'Get list of schedules with pagination' })
   @ApiOkResponse({ description: 'Successfully retrieved' })
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
   @ApiUnauthorizedResponse({ description: 'User is not authorized' })
@@ -88,11 +81,31 @@ export class AccessGroupController {
   @ApiQuery({ name: 'limit' })
   @Roles(TypeRole.ADMIN)
   @Get('/list')
-  getAccessGroupsPage(@Query() paginationDto: PaginationRequestDto) {
-    return this.accessGroupService.getAccessGroupsPage(paginationDto);
+  getSchedulesPage(@Query() paginationDto: PaginationRequestDto) {
+    return this.scheduleService.getSchedulesPage(paginationDto);
   }
 
-  @ApiOperation({ summary: 'Update the existing access group' })
+  @ApiOperation({ summary: 'Get single schedule description' })
+  @ApiOkResponse({ description: 'Successfully retrieved' })
+  @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
+  @ApiUnauthorizedResponse({ description: 'User is not authorized' })
+  @ApiForbiddenResponse({
+    description: "User doesn't have permissions to access this resource",
+  })
+  @ApiParam({ name: 'scheduleId', required: true })
+  @Roles(TypeRole.ADMIN)
+  @Get(':scheduleId')
+  getScheduleDescription(
+    @Param('scheduleId', ParseIntPipe) scheduleId: number,
+  ) {
+    if (!isPositive(scheduleId)) {
+      throw new BadRequestException('scheduleId must be a positive number');
+    }
+
+    return this.scheduleService.getScheduleDescription(scheduleId);
+  }
+
+  @ApiOperation({ summary: 'Update the existing schedule' })
   @ApiOkResponse({ description: 'Successfully updated' })
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
   @ApiUnauthorizedResponse({ description: 'User is not authorized' })
@@ -101,27 +114,25 @@ export class AccessGroupController {
   })
   @Roles(TypeRole.ADMIN)
   @Put()
-  updateAccessGroup(@Body() updateAccessGroupDto: UpdateAccessGroupDto) {
-    return this.accessGroupService.updateAccessGroup(updateAccessGroupDto);
+  updateSchedule(@Body() updateScheduleDto: UpdateScheduleDto) {
+    return this.scheduleService.updateSchedule(updateScheduleDto);
   }
 
-  @ApiOperation({ summary: 'Delete the existing access group' })
+  @ApiOperation({ summary: 'Delete the existing schedule' })
   @ApiOkResponse({ description: 'Successfully deleted' })
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
   @ApiUnauthorizedResponse({ description: 'User is not authorized' })
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @ApiParam({ name: 'accessGroupId', required: true })
+  @ApiParam({ name: 'scheduleId', required: true })
   @Roles(TypeRole.ADMIN)
-  @Delete(':accessGroupId')
-  deleteAccessGroup(
-    @Param('accessGroupId', ParseIntPipe) accessGroupId: number,
-  ) {
-    if (!isPositive(accessGroupId)) {
-      throw new BadRequestException('accessGroupId must be a positive number');
+  @Delete(':scheduleId')
+  deleteSchedule(@Param('scheduleId', ParseIntPipe) scheduleId: number) {
+    if (!isPositive(scheduleId)) {
+      throw new BadRequestException('scheduleId must be a positive number');
     }
 
-    return this.accessGroupService.deleteAccessGroup(accessGroupId);
+    return this.scheduleService.deleteSchedule(scheduleId);
   }
 }

@@ -14,6 +14,10 @@ import { CardModule } from './card/card.module';
 import { ZoneModule } from './zone/zone.module';
 import { DoorModule } from './door/door.module';
 import { HolidayModule } from './holiday/holiday.module';
+import { ScheduleModule } from './schedule/schedule.module';
+import { TimetableModule } from './timetable/timetable.module';
+import { ScheduleHolidayModule } from './schedule-holiday/schedule-holiday.module';
+import { AccessGroupScheduleZoneModule } from './access-group-schedule-zone/access-group-schedule-zone.module';
 
 @Module({
   imports: [
@@ -41,6 +45,10 @@ import { HolidayModule } from './holiday/holiday.module';
     ZoneModule,
     DoorModule,
     HolidayModule,
+    ScheduleModule,
+    TimetableModule,
+    ScheduleHolidayModule,
+    AccessGroupScheduleZoneModule,
   ],
   controllers: [AuthController, UsersController, AppController],
   providers: [],

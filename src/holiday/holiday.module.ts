@@ -9,5 +9,6 @@ import { IsBeforeOrEqualConstraint } from '../validation/before-or-equal.constra
   imports: [TypeOrmModule.forFeature([Holiday])],
   controllers: [HolidayController],
   providers: [HolidayService, IsBeforeOrEqualConstraint],
+  exports: [HolidayService],
 })
 export class HolidayModule {}
