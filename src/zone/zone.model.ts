@@ -5,11 +5,13 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { AccessGroup } from '../access-group/access-group.model';
 import { Location } from '../location/location.model';
 import { Door } from '../door/door.model';
+import { AccessGroupScheduleZone } from '../access-group-schedule-zone/access-group-schedule-zone.model';
 
 @Entity('zone')
 export class Zone {
@@ -56,4 +58,10 @@ export class Zone {
     ],
   })
   parentZones: Zone[];
+
+  @OneToMany(
+    () => AccessGroupScheduleZone,
+    (accessGroupScheduleZone) => accessGroupScheduleZone.zone,
+  )
+  accessGroupScheduleZones: AccessGroupScheduleZone[];
 }

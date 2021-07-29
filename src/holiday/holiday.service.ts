@@ -18,6 +18,10 @@ export class HolidayService {
     private readonly isBeforeOrEqualConstraint: IsBeforeOrEqualConstraint,
   ) {}
 
+  async getAllHolidays() {
+    return await this.holidayRepository.find({ order: { name: 'ASC' } });
+  }
+
   async create(createHolidayDto: CreateHolidayDto) {
     await this.throwIfNameAlreadyTaken(createHolidayDto.name);
 
@@ -97,5 +101,16 @@ export class HolidayService {
     }
 
     return holiday;
+  }
+
+  async validateIds(ids: number[]) {
+    const uniqueIds = Array.from(new Set(ids));
+    const holidays = await this.holidayRepository.findByIds(ids);
+
+    if (!holidays || holidays.length != uniqueIds.length) {
+      throw new EntityNotFoundException({
+        holidayIds: uniqueIds,
+      });
+    }
   }
 }

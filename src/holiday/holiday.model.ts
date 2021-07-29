@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { ScheduleHoliday } from '../schedule-holiday/schedule-holiday.model';
 
 export enum TypeHolidayRecurrence {
   ONCE = 'ONCE',
@@ -30,4 +31,10 @@ export class Holiday {
     default: () => 'now()',
   })
   updatedAt: Date;
+
+  @OneToMany(
+    () => ScheduleHoliday,
+    (scheduleHoliday) => scheduleHoliday.holiday,
+  )
+  schedules: ScheduleHoliday[];
 }

@@ -1,0 +1,1 @@
+drop table access_group_schedule_zone;
