@@ -18,6 +18,7 @@ import { ScheduleModule } from './schedule/schedule.module';
 import { TimetableModule } from './timetable/timetable.module';
 import { ScheduleHolidayModule } from './schedule-holiday/schedule-holiday.module';
 import { AccessGroupScheduleZoneModule } from './access-group-schedule-zone/access-group-schedule-zone.module';
+import { ControllerModule } from './controller/controller.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { AccessGroupScheduleZoneModule } from './access-group-schedule-zone/acce
     TimetableModule,
     ScheduleHolidayModule,
     AccessGroupScheduleZoneModule,
+    ControllerModule,
   ],
   controllers: [AuthController, UsersController, AppController],
   providers: [],

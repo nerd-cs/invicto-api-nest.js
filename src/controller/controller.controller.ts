@@ -1,25 +1,27 @@
 import {
   BadRequestException,
   Body,
-  Controller,
-  Get,
   Param,
   ParseIntPipe,
   Put,
+} from '@nestjs/common';
+import {
+  Controller,
+  Get,
   Query,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import {
-  ApiCookieAuth,
-  ApiTags,
-  ApiOperation,
-  ApiOkResponse,
   ApiBadRequestResponse,
-  ApiUnauthorizedResponse,
+  ApiCookieAuth,
   ApiForbiddenResponse,
-  ApiQuery,
+  ApiOkResponse,
+  ApiOperation,
   ApiParam,
+  ApiQuery,
+  ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { isPositive } from 'class-validator';
 import { Roles } from '../auth/decorator/roles-auth.decorator';
@@ -27,36 +29,18 @@ import { RolesGuard } from '../auth/guard/roles.guard';
 import { InvalidEntityInterceptor } from '../interceptor/invalid-entity.interceptor';
 import { PaginationRequestDto } from '../pagination/pagination-request.dto';
 import { TypeRole } from '../roles/roles.model';
-import { DoorService } from './door.service';
-import { UpdateDoorDto } from './dto/update-door.dto';
+import { ControllerService } from './controller.service';
+import { UpdateControllerDto } from './dto/update-controller.dto';
 
 @ApiCookieAuth()
-@ApiTags('door')
+@ApiTags('controller')
 @UseInterceptors(InvalidEntityInterceptor)
 @UseGuards(RolesGuard)
-@Controller('door')
-export class DoorController {
-  constructor(private readonly doorService: DoorService) {}
+@Controller('controller')
+export class ControllerController {
+  constructor(private readonly controllerService: ControllerService) {}
 
-  @ApiOperation({ summary: 'Get all doors for specified location' })
-  @ApiOkResponse({ description: 'Successfully retrieved' })
-  @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
-  @ApiUnauthorizedResponse({ description: 'User is not authorized' })
-  @ApiForbiddenResponse({
-    description: "User doesn't have permissions to access this resource",
-  })
-  @ApiQuery({ name: 'locationId', required: true })
-  @Roles(TypeRole.ADMIN)
-  @Get()
-  getAllForLocation(@Query('locationId', ParseIntPipe) locationId: number) {
-    if (!isPositive(locationId)) {
-      throw new BadRequestException('locationId must be a positive number');
-    }
-
-    return this.doorService.getAllForLocation(locationId);
-  }
-
-  @ApiOperation({ summary: 'Get list of doors with pagination' })
+  @ApiOperation({ summary: 'Get list of controllers with pagination' })
   @ApiOkResponse({ description: 'Successfully retrieved' })
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
   @ApiUnauthorizedResponse({ description: 'User is not authorized' })
@@ -68,10 +52,10 @@ export class DoorController {
   @Roles(TypeRole.ADMIN)
   @Get('/list')
   getSchedulesPage(@Query() paginationDto: PaginationRequestDto) {
-    return this.doorService.getDoorPage(paginationDto);
+    return this.controllerService.getControllerPage(paginationDto);
   }
 
-  @ApiOperation({ summary: 'Update the existing door' })
+  @ApiOperation({ summary: 'Update the existing controller' })
   @ApiOkResponse({ description: 'Successfully updated' })
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
   @ApiUnauthorizedResponse({ description: 'User is not authorized' })
@@ -80,25 +64,25 @@ export class DoorController {
   })
   @Roles(TypeRole.ADMIN)
   @Put()
-  updateDoor(@Body() updateDoorDto: UpdateDoorDto) {
-    return this.doorService.updateDoor(updateDoorDto);
+  updateController(@Body() updateControllerDto: UpdateControllerDto) {
+    return this.controllerService.updateController(updateControllerDto);
   }
 
-  @ApiOperation({ summary: 'Test the existing door' })
+  @ApiOperation({ summary: 'Test the existing controller' })
   @ApiOkResponse({ description: 'Successfully updated' })
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
   @ApiUnauthorizedResponse({ description: 'User is not authorized' })
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @ApiParam({ name: 'doorId' })
+  @ApiParam({ name: 'controllerId' })
   @Roles(TypeRole.ADMIN)
-  @Put('/:doorId/test')
-  testDoor(@Param('doorId', ParseIntPipe) doorId: number) {
-    if (!isPositive(doorId)) {
-      throw new BadRequestException('doorId must be a positive number');
+  @Put('/:controllerId/test')
+  testController(@Param('controllerId', ParseIntPipe) controllerId: number) {
+    if (!isPositive(controllerId)) {
+      throw new BadRequestException('controllerId must be a positive number');
     }
 
-    return this.doorService.testDoor(doorId);
+    return this.controllerService.testController(controllerId);
   }
 }

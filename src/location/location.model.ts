@@ -4,10 +4,12 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { AccessGroup } from '../access-group/access-group.model';
 import { Company } from '../company/company.model';
+import { Controller } from '../controller/controller.model';
 import { Door } from '../door/door.model';
 import { Zone } from '../zone/zone.model';
 
@@ -31,4 +33,7 @@ export class Location {
 
   @OneToMany(() => Zone, (zone) => zone.location)
   zones: Zone[];
+
+  @OneToOne(() => Controller, (controller) => controller.location)
+  controller: Controller;
 }
