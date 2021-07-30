@@ -74,3 +74,9 @@ values (default, 'Door 1', (SELECT status FROM unnest(enum_range(NULL::TYPE_DOOR
         (default, 'Door 14', (SELECT status FROM unnest(enum_range(NULL::TYPE_DOOR_STATUS)) status ORDER BY random() LIMIT 1), floor(random()*4)+1),
         (default, 'Door 15', (SELECT status FROM unnest(enum_range(NULL::TYPE_DOOR_STATUS)) status ORDER BY random() LIMIT 1), floor(random()*4)+1),
         (default, 'Door 16', (SELECT status FROM unnest(enum_range(NULL::TYPE_DOOR_STATUS)) status ORDER BY random() LIMIT 1), floor(random()*4)+1);
+
+insert into controller(id, name, status, location_id)
+values (default, 'Controller 1', (SELECT status FROM unnest(enum_range(NULL::TYPE_CONTROLLER_STATUS)) status ORDER BY random() LIMIT 1), 1),
+       (default, 'Controller 2', (SELECT status FROM unnest(enum_range(NULL::TYPE_CONTROLLER_STATUS)) status ORDER BY random() LIMIT 1), 2),
+	   (default, 'Controller 3', (SELECT status FROM unnest(enum_range(NULL::TYPE_CONTROLLER_STATUS)) status ORDER BY random() LIMIT 1), 3),
+	   (default, 'Controller 4', (SELECT status FROM unnest(enum_range(NULL::TYPE_CONTROLLER_STATUS)) status ORDER BY random() LIMIT 1), 4);

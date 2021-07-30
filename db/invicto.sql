@@ -441,6 +441,26 @@ create table access_group_schedule_zone (
 create index fk_access_group_schedule_zone_access_group_idx on access_group_schedule_zone(access_group_id asc);
 create index fk_access_group_schedule_zone_schedule_idx on access_group_schedule_zone(schedule_id asc);
 create index fk_access_group_schedule_zone_zone_idx on access_group_schedule_zone(zone_id asc);
+
+create type TYPE_CONTROLLER_STATUS as enum ('PENDING', 'PAIRED', 'NO_SIGNAL');
+
+create table controller (
+	id serial not null,
+	name varchar not null,
+	status TYPE_CONTROLLER_STATUS not null,
+	updated_at timestamp with time zone not null default now(),
+	location_id int not null,
+	primary key (id),
+	unique (name, location_id),
+	constraint fk_controller_location
+	foreign key (location_id)
+	references location(id)
+	on delete no action
+	on update no action
+);
+create unique index controller_name_u_idx on controller(name asc);
+create index fk_controller_location_idx on controller(location_id asc);
+
 --
 -- PostgreSQL database dump complete
 --
