@@ -10,6 +10,13 @@ async function bootstrap() {
   const HOST = process.env.SERVER_HOST || 'localhost';
   const app = await NestFactory.create(AppModule);
 
+  const corsConfig = {
+    origin: (process.env.ORIGIN_REGEX || '').split(','),
+    credentials: true,
+  };
+
+  app.enableCors(corsConfig);
+
   setupSessions(app);
   setupSwagger(app);
   app.useGlobalPipes(new ValidationPipe());
