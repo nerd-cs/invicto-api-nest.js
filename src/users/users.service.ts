@@ -8,6 +8,7 @@ import { RolesService } from '../roles/roles.service';
 import { EntityAlreadyExistsException } from '../exception/entity-already-exists.exception';
 import { AccessGroupService } from 'src/access-group/access-group.service';
 import { AssignLocationDto } from './dto/assign-location.dto';
+import { PaginationRequestDto } from '../pagination/pagination-request.dto';
 
 @Injectable()
 export class UsersService {
@@ -30,10 +31,39 @@ export class UsersService {
     return user;
   }
 
-  async getAll() {
+  async getAll(user: Express.User) {
     return await this.userRepository
-      .find({ relations: ['roles'] })
+      .find({ relations: ['roles'], where: { company: user['company'] } })
       .then((users) => users.map(this.sanitizeUserInfo));
+  }
+
+  async getUsersPage(user: Express.User, paginationDto: PaginationRequestDto) {
+    const offset = (paginationDto.page - 1) * paginationDto.limit;
+
+    const page = await this.userRepository.find({
+      where: { company: user['company'] },
+      relations: ['accessGroups', 'roles'],
+      take: paginationDto.limit,
+      skip: offset,
+      order: { fullName: 'ASC' },
+    });
+
+    const result = [];
+
+    page.forEach((user) => {
+      const accessGroups = user.accessGroups.map(
+        (accessGroup) => accessGroup.name,
+      );
+      const sanitized = this.sanitizeUserInfo(user);
+      const { company, ...rest } = sanitized;
+
+      rest['accessGroups'] = accessGroups;
+      rest['lastActivity'] = new Date();
+
+      result.push(rest);
+    });
+
+    return result;
   }
 
   async createUser(userDto: CreateUserDto, admin: Express.User) {

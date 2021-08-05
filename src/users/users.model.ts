@@ -100,9 +100,14 @@ export class User {
   cards: Card[];
 
   @ManyToMany(() => AccessGroup, (accessGroup) => accessGroup.users)
+  @ApiModelProperty({ isArray: true, type: 'string' })
   accessGroups: AccessGroup[];
 
   @ManyToOne(() => Company, (company) => company.users)
   @JoinColumn([{ name: 'company_id', referencedColumnName: 'id' }])
+  @ApiModelProperty()
   company: Company;
+
+  @ApiModelProperty()
+  lastActivity: Date;
 }

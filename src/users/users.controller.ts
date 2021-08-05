@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Query,
   Req,
   UseGuards,
   UseInterceptors,
@@ -21,12 +22,14 @@ import {
   ApiForbiddenResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { User } from './users.model';
 import { Request } from 'express';
 import { InvalidEntityInterceptor } from '../interceptor/invalid-entity.interceptor';
+import { PaginationRequestDto } from '../pagination/pagination-request.dto';
 
 @Controller('users')
 @UseGuards(RolesGuard)
@@ -38,7 +41,7 @@ export class UsersController {
 
   @Get()
   @Roles(TypeRole.ADMIN)
-  @ApiOperation({ summary: 'Retrieve list of all users' })
+  @ApiOperation({ summary: 'Retrieve list of all users for assigned company' })
   @ApiOkResponse({
     type: User,
     isArray: true,
@@ -48,8 +51,28 @@ export class UsersController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  getAll() {
-    return this.userService.getAll();
+  getAll(@Req() request: Request) {
+    return this.userService.getAll(request.user);
+  }
+
+  @ApiOperation({
+    summary: 'Get list of users for assigned company with pagination',
+  })
+  @ApiOkResponse({ description: 'Successfully retrieved' })
+  @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
+  @ApiUnauthorizedResponse({ description: 'User is not authorized' })
+  @ApiForbiddenResponse({
+    description: "User doesn't have permissions to access this resource",
+  })
+  @ApiQuery({ name: 'page' })
+  @ApiQuery({ name: 'limit' })
+  @Roles(TypeRole.ADMIN)
+  @Get('/list')
+  getUsersPage(
+    @Query() paginationDto: PaginationRequestDto,
+    @Req() request: Request,
+  ) {
+    return this.userService.getUsersPage(request.user, paginationDto);
   }
 
   @Post()
