@@ -31,7 +31,11 @@ function setupSessions(app: INestApplication) {
       secret: process.env.SESSION_SECRET,
       resave: false,
       saveUninitialized: false,
-      cookie: { maxAge: Number(process.env.COOKIE_MAX_AGE) },
+      cookie: {
+        maxAge: Number(process.env.COOKIE_MAX_AGE),
+        sameSite: false,
+        httpOnly: false,
+      },
     }),
   );
   app.use(passport.initialize());
