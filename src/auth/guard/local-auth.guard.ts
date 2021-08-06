@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { EntityNotFoundException } from '../../exception/entity-not-found.exception';
 import { BadCredentialsException } from '../../exception/bad-credentials.exception';
+import { PendingInvitationException } from '../../exception/pending-invitation.exception';
 
 @Injectable()
 export class LocalAuthGuard extends AuthGuard('local') {
@@ -16,6 +17,8 @@ export class LocalAuthGuard extends AuthGuard('local') {
         err instanceof BadCredentialsException
       ) {
         throw new UnauthorizedException('Invalid email or password');
+      } else if (err instanceof PendingInvitationException) {
+        throw new UnauthorizedException(err.message);
       } else {
         throw err;
       }
