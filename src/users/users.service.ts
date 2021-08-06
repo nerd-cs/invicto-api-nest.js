@@ -9,13 +9,22 @@ import { EntityAlreadyExistsException } from '../exception/entity-already-exists
 import { AccessGroupService } from 'src/access-group/access-group.service';
 import { AssignLocationDto } from './dto/assign-location.dto';
 import { PaginationRequestDto } from '../pagination/pagination-request.dto';
+import { MailService } from '../mail/mail.service';
+import { CompleteRegistrationDto } from './dto/complete-registration.dto';
+import { TokenService } from '../token/token.service';
+import { InvalidTokenException } from '../exception/invalid-token.exception';
+import * as bcrypt from 'bcryptjs';
+import { InvalidInvitationException } from '../exception/invalid-invitation.exception';
 
+export const SALT_LENGTH = 10;
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private readonly roleService: RolesService,
     private readonly accessGroupService: AccessGroupService,
+    private readonly mailService: MailService,
+    private readonly tokenService: TokenService,
   ) {}
 
   async getUserByEmail(email: string): Promise<User> {
@@ -66,7 +75,11 @@ export class UsersService {
     return result;
   }
 
-  async createUser(userDto: CreateUserDto, admin: Express.User) {
+  async createUser(
+    userDto: CreateUserDto,
+    admin: Express.User,
+    originHeader: string,
+  ) {
     const { role, locations, cards, instantlyInvite, ...restUserAttributes } =
       userDto;
 
@@ -84,7 +97,9 @@ export class UsersService {
       restUserAttributes['roles'] = [roleEntity];
     }
 
-    restUserAttributes['status'] = TypeUserStatus.INCOMPLETE;
+    restUserAttributes['status'] = instantlyInvite
+      ? TypeUserStatus.PENDING
+      : TypeUserStatus.INCOMPLETE;
     restUserAttributes['company'] = admin['company'];
     await this.validateAndAssignAccessGroups(restUserAttributes, locations);
 
@@ -97,6 +112,10 @@ export class UsersService {
     const { id, email, fullName, phoneNumber, allowSso } = savedUser;
 
     const roles = savedUser.roles.map((role) => role.value);
+
+    if (instantlyInvite) {
+      this.sendInvitation(savedUser, originHeader);
+    }
 
     return { id, email, fullName, phoneNumber, allowSso, roles };
   }
@@ -145,5 +164,73 @@ export class UsersService {
       status,
       company,
     };
+  }
+
+  async inviteUser(userId: number, originHeader: string) {
+    const user = await this.getById(userId);
+
+    if (user.status === TypeUserStatus.ACTIVE) {
+      throw new InvalidInvitationException('Email already confirmed');
+    }
+
+    if (user.status === TypeUserStatus.PENDING) {
+      throw new InvalidInvitationException('Invitation already sent');
+    }
+
+    await this.sendInvitation(user, originHeader);
+
+    user.status = TypeUserStatus.PENDING;
+    await this.userRepository.save(user);
+  }
+
+  private async sendInvitation(user: User, originHeader: string) {
+    const token = await this.tokenService.createToken(user);
+
+    this.mailService.sendEmailConfirmation(token, originHeader);
+  }
+
+  async completeRegistration(dto: CompleteRegistrationDto) {
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect(
+        'user.tokens',
+        'tokens',
+        'tokens.value = :tokenValue',
+        { tokenValue: dto.token },
+      )
+      .leftJoinAndSelect('user.roles', 'roles')
+      .where('tokens.value = :tokenValue', { tokenValue: dto.token })
+      .getOne();
+
+    if (!user) {
+      throw new InvalidTokenException('Invalid confirmation token');
+    }
+
+    const now = new Date();
+    const { tokens, ...rest } = user;
+    const token = tokens[0];
+
+    if (token.validThrough < now) {
+      rest.status = TypeUserStatus.INCOMPLETE;
+      this.userRepository.save(rest);
+      this.tokenService.removeByValue(token.value);
+      throw new InvalidTokenException('Confirmation token is expired');
+    }
+
+    this.tokenService.removeByValue(token.value);
+    rest.status = TypeUserStatus.ACTIVE;
+    rest.password = await bcrypt.hash(dto.password, SALT_LENGTH);
+
+    return this.sanitizeUserInfo(await this.userRepository.save(rest));
+  }
+
+  async getById(userId: number) {
+    const user = await this.userRepository.findOne(userId);
+
+    if (!user) {
+      throw new EntityNotFoundException({ userId: userId });
+    }
+
+    return user;
   }
 }

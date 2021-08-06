@@ -461,6 +461,22 @@ create table controller (
 create unique index controller_name_u_idx on controller(name asc);
 create index fk_controller_location_idx on controller(location_id asc);
 
+create table token (
+	id serial not null,
+	value varchar not null,
+	valid_through timestamp with time zone not null default now(),
+	user_id int not null,
+	primary key(id),
+	unique(value),
+	constraint fk_token_users
+	foreign key (user_id)
+	references users(id)
+	on delete no action
+	on update no action
+);
+create unique index token_value_u_idx on token(value asc);
+create index fk_token_users_idx on token(user_id asc);
+
 --
 -- PostgreSQL database dump complete
 --

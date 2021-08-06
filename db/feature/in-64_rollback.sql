@@ -9,3 +9,4 @@ drop table user_access_group;
 drop table access_group;
 drop table location;
 drop table company;
+drop table token;

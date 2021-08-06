@@ -16,6 +16,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Card } from '../card/card.model';
 import { Company } from '../company/company.model';
 import { AccessGroup } from '../access-group/access-group.model';
+import { Token } from '../token/token.model';
 
 export enum TypeUserStatus {
   PENDING = 'PENDING',
@@ -110,4 +111,7 @@ export class User {
 
   @ApiModelProperty()
   lastActivity: Date;
+
+  @OneToMany(() => Token, (token) => token.user)
+  tokens: Token[];
 }

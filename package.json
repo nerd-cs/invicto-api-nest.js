@@ -21,6 +21,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@nestjs-modules/mailer": "^1.6.0",
     "@nestjs/axios": "0.0.1",
     "@nestjs/common": "^7.6.15",
     "@nestjs/config": "^0.6.3",
@@ -34,6 +35,8 @@
     "class-validator": "^0.13.1",
     "cross-env": "^7.0.3",
     "express-session": "^1.17.2",
+    "handlebars": "^4.7.7",
+    "nodemailer": "^6.6.3",
     "passport": "^0.4.1",
     "passport-google-oauth20": "^2.0.0",
     "passport-local": "^1.0.0",

@@ -6,6 +6,8 @@ import { Role } from '../roles/roles.model';
 import { RolesModule } from '../roles/roles.module';
 import { AccessGroupModule } from '../access-group/access-group.module';
 import { CardModule } from '../card/card.module';
+import { MailModule } from '../mail/mail.module';
+import { TokenModule } from '../token/token.module';
 
 @Module({
   imports: [
@@ -13,6 +15,8 @@ import { CardModule } from '../card/card.module';
     RolesModule,
     AccessGroupModule,
     CardModule,
+    MailModule,
+    TokenModule,
   ],
   providers: [UsersService],
   exports: [UsersService],

@@ -95,3 +95,20 @@ insert into access_group(id, name, location_id)
 values (default, 'Lobby', 2),
 (default, 'Main Entrance', 2),
 (default, 'Garage', 2);
+
+-- token
+create table token (
+	id serial not null,
+	value varchar not null,
+	valid_through timestamp with time zone not null default now(),
+	user_id int not null,
+	primary key(id),
+	unique(value),
+	constraint fk_token_users
+	foreign key (user_id)
+	references users(id)
+	on delete no action
+	on update no action
+);
+create unique index token_value_u_idx on token(value asc);
+create index fk_token_users_idx on token(user_id asc);
