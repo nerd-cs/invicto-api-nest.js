@@ -7,6 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY *.env ./
 COPY tsconfig.* ./
+COPY cert ./
 
 # Install app dependencies
 RUN npm install
@@ -22,6 +23,7 @@ COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/tsconfig.* ./
 COPY --from=builder /app/.prod.env ./
+COPY --from=builder /app/cert ./cert
 
 EXPOSE ${PORT}
 CMD [ "npm", "run", "start" ]
