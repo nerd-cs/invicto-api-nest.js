@@ -15,6 +15,8 @@ import { TokenService } from '../token/token.service';
 import { InvalidTokenException } from '../exception/invalid-token.exception';
 import * as bcrypt from 'bcryptjs';
 import { InvalidInvitationException } from '../exception/invalid-invitation.exception';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { PendingInvitationException } from '../exception/pending-invitation.exception';
 
 export const SALT_LENGTH = 10;
 export const BASE_64_PREFIX = 'data:image/jpg;base64,';
@@ -29,16 +31,20 @@ export class UsersService {
   ) {}
 
   async getUserByEmail(email: string): Promise<User> {
-    const user = await this.userRepository.findOne({
-      where: { email: email },
-      relations: ['roles', 'company'],
-    });
+    const user = await this.findByEmail(email, ['roles', 'company']);
 
     if (!user) {
       throw new EntityNotFoundException({ email: email });
     }
 
     return user;
+  }
+
+  async findByEmail(email: string, relations: string[] = undefined) {
+    return await this.userRepository.findOne({
+      where: { email: email },
+      relations: relations,
+    });
   }
 
   async getAll(user: Express.User) {
@@ -235,5 +241,72 @@ export class UsersService {
     }
 
     return user;
+  }
+
+  async resetPassword(
+    resetPasswordDto: ResetPasswordDto,
+    originHeader: string,
+  ) {
+    const user = await this.findByEmail(resetPasswordDto.email);
+
+    if (!user) {
+      return;
+    }
+
+    if (user.status === TypeUserStatus.PENDING) {
+      throw new PendingInvitationException();
+    }
+
+    this.sendPasswordReset(user, originHeader);
+  }
+
+  async resetPasswordForUser(userId: number, originHeader: string) {
+    const user = await this.getById(userId);
+
+    if (user.status === TypeUserStatus.PENDING) {
+      throw new PendingInvitationException();
+    }
+
+    this.sendPasswordReset(user, originHeader);
+  }
+
+  private async sendPasswordReset(user: User, origin: string) {
+    const token = await this.tokenService.createToken(user);
+
+    this.mailService.sendPasswordReset(token, origin);
+  }
+
+  async confirmPassword(confirmPasswordDto: CompleteRegistrationDto) {
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect(
+        'user.tokens',
+        'tokens',
+        'tokens.value = :tokenValue',
+        { tokenValue: confirmPasswordDto.token },
+      )
+      .leftJoinAndSelect('user.roles', 'roles')
+      .where('tokens.value = :tokenValue', {
+        tokenValue: confirmPasswordDto.token,
+      })
+      .getOne();
+
+    if (!user) {
+      throw new InvalidTokenException('Invalid confirmation token');
+    }
+
+    const now = new Date();
+    const { tokens, ...rest } = user;
+    const token = tokens[0];
+
+    if (token.validThrough < now) {
+      this.tokenService.removeByValue(token.value);
+      throw new InvalidTokenException('Confirmation token is expired');
+    }
+
+    this.tokenService.removeByValue(token.value);
+    rest.password = await bcrypt.hash(confirmPasswordDto.password, SALT_LENGTH);
+
+    return this.sanitizeUserInfo(await this.userRepository.save(rest));
   }
 }
