@@ -4,11 +4,12 @@ import * as session from 'express-session';
 import * as passport from 'passport';
 import { INestApplication, Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
   const PORT = process.env.PORT || 3000;
   const HOST = process.env.SERVER_HOST || 'localhost';
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   const corsConfig = {
     origin: (process.env.ORIGIN_REGEX || '').split(','),
@@ -25,15 +26,24 @@ async function bootstrap() {
   Logger.log(`Application started on: ${await app.getUrl()}`);
 }
 
-function setupSessions(app: INestApplication) {
-  app.use(
-    session({
-      secret: process.env.SESSION_SECRET,
-      resave: false,
-      saveUninitialized: false,
-      cookie: { maxAge: Number(process.env.COOKIE_MAX_AGE), httpOnly: false },
-    }),
-  );
+function setupSessions(app: NestExpressApplication) {
+  const sessionConfig = {
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: Number(process.env.COOKIE_MAX_AGE),
+      httpOnly: false,
+    },
+  };
+
+  if (process.env.NODE_ENV === 'prod') {
+    app.set('trust proxy', 1);
+    sessionConfig.cookie['sameSite'] = 'none';
+    sessionConfig.cookie['secure'] = true;
+  }
+
+  app.use(session(sessionConfig));
   app.use(passport.initialize());
   app.use(passport.session());
 }
