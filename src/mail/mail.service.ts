@@ -10,7 +10,7 @@ export class MailService {
     const serverAddress = origin
       ? origin
       : `http://${process.env.SERVER_HOST}:${process.env.PORT}`;
-    const url = `${serverAddress}/users/confirm?token=${token.value}`;
+    const url = `${serverAddress}/signup?token=${token.value}`;
 
     await this.mailerService.sendMail({
       to: token.user.email,
