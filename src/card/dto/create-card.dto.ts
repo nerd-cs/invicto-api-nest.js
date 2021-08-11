@@ -21,13 +21,13 @@ export class CreateCardDto {
   @IsDateString()
   readonly activationDate: Date;
 
-  @ApiModelProperty()
+  @ApiModelProperty({ required: false })
   @IsOptional()
   @IsNotEmpty()
   @IsDateString()
   readonly expirationDate: Date;
 
-  @ApiModelProperty()
+  @ApiModelProperty({ required: false })
   @IsOptional()
   @IsNotEmpty()
   @IsNumber()
