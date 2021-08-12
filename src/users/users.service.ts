@@ -17,6 +17,7 @@ import * as bcrypt from 'bcryptjs';
 import { InvalidInvitationException } from '../exception/invalid-invitation.exception';
 
 export const SALT_LENGTH = 10;
+export const BASE_64_PREFIX = 'data:image/jpg;base64,';
 @Injectable()
 export class UsersService {
   constructor(
@@ -153,7 +154,9 @@ export class UsersService {
 
     const plainRoles = roles.map((role) => role.value);
 
-    const picture = profilePicture?.toString('base64') || null;
+    const picture = profilePicture
+      ? `${BASE_64_PREFIX}${profilePicture.toString('base64')}`
+      : null;
 
     return {
       id,
