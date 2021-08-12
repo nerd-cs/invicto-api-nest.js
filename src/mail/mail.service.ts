@@ -7,9 +7,7 @@ export class MailService {
   constructor(private readonly mailerService: MailerService) {}
 
   async sendEmailConfirmation(token: Token, origin: string) {
-    const serverAddress = origin
-      ? origin
-      : `http://${process.env.SERVER_HOST}:${process.env.PORT}`;
+    const serverAddress = this.constructServerAddress(origin);
     const url = `${serverAddress}/signup?token=${token.value}`;
 
     await this.mailerService.sendMail({
@@ -21,5 +19,26 @@ export class MailService {
         url,
       },
     });
+  }
+
+  async sendPasswordReset(token: Token, origin: string) {
+    const serverAddress = this.constructServerAddress(origin);
+    const url = `${serverAddress}/login/password-reset?token=${token.value}`;
+
+    await this.mailerService.sendMail({
+      to: token.user.email,
+      subject: 'Password reset request for your Invicto account',
+      template: './password-reset',
+      context: {
+        name: token.user.fullName,
+        url,
+      },
+    });
+  }
+
+  private constructServerAddress(origin: string) {
+    return origin
+      ? origin
+      : `http://${process.env.SERVER_HOST}:${process.env.PORT}`;
   }
 }

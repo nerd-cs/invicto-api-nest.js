@@ -37,6 +37,7 @@ import { InvalidEntityInterceptor } from '../interceptor/invalid-entity.intercep
 import { PaginationRequestDto } from '../pagination/pagination-request.dto';
 import { CompleteRegistrationDto } from './dto/complete-registration.dto';
 import { isPositive } from 'class-validator';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('users')
 @UseInterceptors(EntityAlreadyExistsInterceptor, InvalidEntityInterceptor)
@@ -131,5 +132,51 @@ export class UsersController {
     @Body() completeRegistrationDto: CompleteRegistrationDto,
   ) {
     return this.userService.completeRegistration(completeRegistrationDto);
+  }
+
+  @Put('/password/reset')
+  @ApiOperation({ summary: 'Send password reset email' })
+  @ApiOkResponse({ description: 'Successfully completed' })
+  @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
+  resetPassword(
+    @Body() resetPasswordDto: ResetPasswordDto,
+    @Req() request: Request,
+  ) {
+    const originHeader = request.header('origin');
+
+    return this.userService.resetPassword(resetPasswordDto, originHeader);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles(TypeRole.ADMIN)
+  @Put('/:userId/password/reset')
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'Send password reset email for selected user' })
+  @ApiOkResponse({ description: 'Successfully completed' })
+  @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
+  @ApiUnauthorizedResponse({ description: 'User is unauthorized' })
+  @ApiForbiddenResponse({
+    description: "User doesn't have permissions to access this resource",
+  })
+  @ApiParam({ name: 'userId', required: true })
+  resetPasswordForUser(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Req() request: Request,
+  ) {
+    if (!isPositive(userId)) {
+      throw new BadRequestException('userId must be a positive number');
+    }
+
+    const originHeader = request.header('origin');
+
+    return this.userService.resetPasswordForUser(userId, originHeader);
+  }
+
+  @Put('/password/confirm')
+  @ApiOperation({ summary: 'Confirm new password' })
+  @ApiOkResponse({ description: 'Successfully completed' })
+  @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
+  confirmPassword(@Body() confirmPasswordDto: CompleteRegistrationDto) {
+    return this.userService.confirmPassword(confirmPasswordDto);
   }
 }
