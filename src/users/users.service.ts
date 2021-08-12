@@ -8,7 +8,6 @@ import { RolesService } from '../roles/roles.service';
 import { EntityAlreadyExistsException } from '../exception/entity-already-exists.exception';
 import { AccessGroupService } from 'src/access-group/access-group.service';
 import { AssignLocationDto } from './dto/assign-location.dto';
-import { PaginationRequestDto } from '../pagination/pagination-request.dto';
 import { MailService } from '../mail/mail.service';
 import { CompleteRegistrationDto } from './dto/complete-registration.dto';
 import { TokenService } from '../token/token.service';
@@ -17,6 +16,8 @@ import * as bcrypt from 'bcryptjs';
 import { InvalidInvitationException } from '../exception/invalid-invitation.exception';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { PendingInvitationException } from '../exception/pending-invitation.exception';
+import { UserPaginationRequestDto } from '../pagination/user-pagination-request.dto';
+import { TypeRole } from '../roles/roles.model';
 
 export const SALT_LENGTH = 10;
 export const BASE_64_PREFIX = 'data:image/jpg;base64,';
@@ -53,13 +54,65 @@ export class UsersService {
       .then((users) => users.map(this.sanitizeUserInfo));
   }
 
-  async getUsersPage(user: Express.User, paginationDto: PaginationRequestDto) {
+  async getUsersPage(
+    user: Express.User,
+    paginationDto: UserPaginationRequestDto,
+  ) {
     const offset = (paginationDto.page - 1) * paginationDto.limit;
 
+    return paginationDto.role
+      ? this.getUsersPageWithPermissions(
+          offset,
+          paginationDto.limit,
+          user,
+          paginationDto.role,
+        )
+      : this.getUsersPageWithAccessGroups(offset, paginationDto.limit, user);
+  }
+
+  private async getUsersPageWithPermissions(
+    offset: number,
+    limit: number,
+    user: Express.User,
+    role: TypeRole,
+  ) {
+    const page = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.company', 'company')
+      .leftJoinAndSelect('user.roles', 'roles')
+      .where('company.id = :companyId', { companyId: user['company']['id'] })
+      .andWhere('roles.value = :role', { role })
+      .skip(offset)
+      .take(limit)
+      .getMany();
+
+    const result = [];
+
+    page.forEach((user) => {
+      const sanitized = this.sanitizeUserInfo(user);
+      const { company, ...rest } = sanitized;
+
+      rest['lastActivity'] = new Date();
+
+      if (rest.roles.includes(TypeRole.ADMIN)) {
+        rest['permissions'] = 'All permissions';
+      }
+
+      result.push(rest);
+    });
+
+    return result;
+  }
+
+  private async getUsersPageWithAccessGroups(
+    offset: number,
+    limit: number,
+    user: Express.User,
+  ) {
     const page = await this.userRepository.find({
       where: { company: user['company'] },
       relations: ['accessGroups', 'roles'],
-      take: paginationDto.limit,
+      take: limit,
       skip: offset,
       order: { fullName: 'ASC' },
     });
