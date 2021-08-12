@@ -155,8 +155,17 @@ export class UsersService {
   }
 
   sanitizeUserInfo(user: User) {
-    const { id, fullName, email, profilePicture, roles, status, company } =
-      user;
+    const {
+      id,
+      fullName,
+      email,
+      profilePicture,
+      roles,
+      status,
+      company,
+      phoneNumber,
+      twoStepAuth,
+    } = user;
 
     const plainRoles = roles.map((role) => role.value);
 
@@ -172,6 +181,8 @@ export class UsersService {
       roles: plainRoles,
       status,
       company,
+      phoneNumber,
+      twoStepAuth,
     };
   }
 
