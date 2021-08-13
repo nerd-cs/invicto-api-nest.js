@@ -34,10 +34,10 @@ import {
 import { User } from './users.model';
 import { Request } from 'express';
 import { InvalidEntityInterceptor } from '../interceptor/invalid-entity.interceptor';
-import { PaginationRequestDto } from '../pagination/pagination-request.dto';
 import { CompleteRegistrationDto } from './dto/complete-registration.dto';
 import { isPositive } from 'class-validator';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { UserPaginationRequestDto } from '../pagination/user-pagination-request.dto';
 
 @Controller('users')
 @UseInterceptors(EntityAlreadyExistsInterceptor, InvalidEntityInterceptor)
@@ -79,7 +79,7 @@ export class UsersController {
   @Roles(TypeRole.ADMIN)
   @Get('/list')
   getUsersPage(
-    @Query() paginationDto: PaginationRequestDto,
+    @Query() paginationDto: UserPaginationRequestDto,
     @Req() request: Request,
   ) {
     return this.userService.getUsersPage(request.user, paginationDto);

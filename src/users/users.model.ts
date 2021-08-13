@@ -117,4 +117,7 @@ export class User {
 
   @ApiModelProperty()
   twoStepAuth = false;
+
+  @ApiModelProperty()
+  permissions: string[] | string;
 }
