@@ -1,11 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsOptional } from 'class-validator';
-import { TypeRole } from '../roles/roles.model';
 import { PaginationRequestDto } from './pagination-request.dto';
 
+export enum TypeFilterRole {
+  ADMIN = 'ADMIN',
+  TIER_ADMIN = 'TIER_ADMIN',
+}
 export class UserPaginationRequestDto extends PaginationRequestDto {
   @IsOptional()
-  @IsEnum(TypeRole)
-  @ApiProperty({ enum: TypeRole, enumName: 'TypeRole', required: false })
-  readonly role: TypeRole;
+  @IsEnum(TypeFilterRole)
+  @ApiProperty({
+    enum: TypeFilterRole,
+    enumName: 'TypeFilterRole',
+    required: false,
+  })
+  readonly role: TypeFilterRole;
 }

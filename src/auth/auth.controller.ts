@@ -54,7 +54,9 @@ export class AuthController {
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
   @ApiBody(SIGN_IN_REQUEST_BODY_OPTIONS)
   login(@Req() request) {
-    return request.user;
+    const { permissions, ...rest } = request.user;
+
+    return rest;
   }
 
   @Get('/logout')

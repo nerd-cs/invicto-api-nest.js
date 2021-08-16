@@ -24,8 +24,10 @@ SET search_path TO public;
 CREATE TYPE public.type_role AS ENUM (
     'GUEST',
     'MEMBER',
-    'TIER_ADMIN',
-    'ADMIN'
+    'ADMIN',
+	'SECURITY',
+	'USER_MANAGER',
+	'FRONT_DESK'
 );
 
 
@@ -63,6 +65,19 @@ CREATE SEQUENCE public.role_id_seq
 
 ALTER SEQUENCE public.role_id_seq OWNED BY public.role.id;
 
+CREATE TYPE TYPE_PERMISSION as ENUM ('BUILDING_ACCESS', 'ACCOUNT_MANAGEMENT', 'CARD_REQUEST', 'READ_ACTIVITY', 'USER_MANAGEMENT', 'KEY_MANAGEMENT', 'ALL_ACCESS');
+
+CREATE TABLE role_permission (
+    role_id int NOT NULL,
+    permission TYPE_PERMISSION NOT NULL,
+    PRIMARY KEY (role_id, permission),
+    CONSTRAINT fk_role_permission_permission
+	FOREIGN KEY (role_id)
+	REFERENCES role(id)
+	ON DELETE NO ACTION
+	ON UPDATE NO ACTION
+);
+CREATE INDEX fk_role_permission_permission_idx ON role_permission(role_id ASC);
 
 --
 -- Name: user_role; Type: TABLE; Schema: public;

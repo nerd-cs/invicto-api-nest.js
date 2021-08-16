@@ -28,11 +28,11 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { isPositive } from 'class-validator';
-import { Roles } from '../auth/decorator/roles-auth.decorator';
-import { RolesGuard } from '../auth/guard/roles.guard';
+import { Permissions } from '../auth/decorator/permissions-auth.decorator';
+import { PermissionsGuard } from '../auth/guard/permissions.guard';
 import { InvalidEntityInterceptor } from '../interceptor/invalid-entity.interceptor';
 import { PaginationRequestDto } from '../pagination/pagination-request.dto';
-import { TypeRole } from '../roles/roles.model';
+import { TypePermission } from '../permission/permission.model';
 import { AccessGroupService } from './access-group.service';
 import { CreateAccessGroupDto } from './dto/create-access-group.dto';
 import { UpdateAccessGroupDto } from './dto/update-access-group.dto';
@@ -41,7 +41,7 @@ import { UpdateAccessGroupDto } from './dto/update-access-group.dto';
 @ApiTags('access group')
 @Controller('accessgroup')
 @UseInterceptors(InvalidEntityInterceptor)
-@UseGuards(RolesGuard)
+@UseGuards(PermissionsGuard)
 export class AccessGroupController {
   constructor(private readonly accessGroupService: AccessGroupService) {}
 
@@ -53,7 +53,7 @@ export class AccessGroupController {
     description: "User doesn't have permissions to access this resource",
   })
   @ApiQuery({ name: 'locationId', required: true })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.USER_MANAGEMENT)
   @Get()
   getAllForLocation(@Query('locationId', ParseIntPipe) locationId: number) {
     if (!isPositive(locationId)) {
@@ -70,7 +70,7 @@ export class AccessGroupController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.ALL_ACCESS)
   @HttpCode(HttpStatus.OK)
   @Post()
   createAccessGroup(@Body() createAccessGroupDto: CreateAccessGroupDto) {
@@ -86,7 +86,7 @@ export class AccessGroupController {
   })
   @ApiQuery({ name: 'page' })
   @ApiQuery({ name: 'limit' })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.ALL_ACCESS)
   @Get('/list')
   getAccessGroupsPage(@Query() paginationDto: PaginationRequestDto) {
     return this.accessGroupService.getAccessGroupsPage(paginationDto);
@@ -99,7 +99,7 @@ export class AccessGroupController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.ALL_ACCESS)
   @Put()
   updateAccessGroup(@Body() updateAccessGroupDto: UpdateAccessGroupDto) {
     return this.accessGroupService.updateAccessGroup(updateAccessGroupDto);
@@ -113,7 +113,7 @@ export class AccessGroupController {
     description: "User doesn't have permissions to access this resource",
   })
   @ApiParam({ name: 'accessGroupId', required: true })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.ALL_ACCESS)
   @Delete(':accessGroupId')
   deleteAccessGroup(
     @Param('accessGroupId', ParseIntPipe) accessGroupId: number,

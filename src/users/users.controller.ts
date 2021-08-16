@@ -16,9 +16,8 @@ import {
   Delete,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { RolesGuard } from '../auth/guard/roles.guard';
-import { Roles } from '../auth/decorator/roles-auth.decorator';
-import { TypeRole } from '../roles/roles.model';
+import { PermissionsGuard } from '../auth/guard/permissions.guard';
+import { Permissions } from '../auth/decorator/permissions-auth.decorator';
 import { CreateUserDto } from './dto/create-user.dto';
 import { EntityAlreadyExistsInterceptor } from './interceptor/entity-already-exists.interceptor';
 import {
@@ -46,6 +45,7 @@ import { UpdateAccessGroupsDto } from './dto/update-user-access-groups.dto';
 import { ChangeActivenessDto as ChangeActivenessDto } from './dto/change-activeness.dto';
 import { UpdateUserCardDto } from './dto/update-user-card.dto';
 import { CreateUserCardsDto } from './dto/create-user-cards.dto';
+import { TypePermission } from '../permission/permission.model';
 
 @Controller('users')
 @UseInterceptors(EntityAlreadyExistsInterceptor, InvalidEntityInterceptor)
@@ -54,8 +54,8 @@ export class UsersController {
   constructor(private readonly userService: UsersService) {}
 
   @Get()
-  @UseGuards(RolesGuard)
-  @Roles(TypeRole.ADMIN)
+  @UseGuards(PermissionsGuard)
+  @Permissions(TypePermission.USER_MANAGEMENT)
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Retrieve list of all users for assigned company' })
   @ApiOkResponse({
@@ -83,8 +83,8 @@ export class UsersController {
   @ApiQuery({ name: 'page' })
   @ApiQuery({ name: 'limit' })
   @ApiCookieAuth()
-  @UseGuards(RolesGuard)
-  @Roles(TypeRole.ADMIN)
+  @UseGuards(PermissionsGuard)
+  @Permissions(TypePermission.USER_MANAGEMENT)
   @Get('/list')
   getUsersPage(
     @Query() paginationDto: UserPaginationRequestDto,
@@ -103,8 +103,8 @@ export class UsersController {
     description: "User doesn't have permissions to access this resource",
   })
   @ApiCookieAuth()
-  @UseGuards(RolesGuard)
-  @Roles(TypeRole.ADMIN)
+  @UseGuards(PermissionsGuard)
+  @Permissions(TypePermission.USER_MANAGEMENT)
   @Get('/:userId')
   getUserInfo(
     @Param('userId', ParseIntPipe) userId: number,
@@ -118,8 +118,8 @@ export class UsersController {
   }
 
   @Post()
-  @UseGuards(RolesGuard)
-  @Roles(TypeRole.ADMIN)
+  @UseGuards(PermissionsGuard)
+  @Permissions(TypePermission.USER_MANAGEMENT)
   @HttpCode(HttpStatus.OK)
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Create new user with access to building' })
@@ -134,8 +134,8 @@ export class UsersController {
   }
 
   @Put()
-  @UseGuards(RolesGuard)
-  @Roles(TypeRole.ADMIN)
+  @UseGuards(PermissionsGuard)
+  @Permissions(TypePermission.USER_MANAGEMENT)
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Update the existing user' })
   @ApiOkResponse({ type: User, description: 'Successfully updated' })
@@ -149,8 +149,8 @@ export class UsersController {
   }
 
   @Post('/collaborator')
-  @UseGuards(RolesGuard)
-  @Roles(TypeRole.ADMIN)
+  @UseGuards(PermissionsGuard)
+  @Permissions(TypePermission.USER_MANAGEMENT)
   @HttpCode(HttpStatus.OK)
   @ApiCookieAuth()
   @ApiOperation({
@@ -176,8 +176,8 @@ export class UsersController {
   }
 
   @Put('/:userId/invite')
-  @UseGuards(RolesGuard)
-  @Roles(TypeRole.ADMIN)
+  @UseGuards(PermissionsGuard)
+  @Permissions(TypePermission.USER_MANAGEMENT)
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Invite user' })
   @ApiOkResponse({ type: User, description: 'Successfully invited' })
@@ -196,8 +196,8 @@ export class UsersController {
   }
 
   @Put('/:userId/status')
-  @UseGuards(RolesGuard)
-  @Roles(TypeRole.ADMIN)
+  @UseGuards(PermissionsGuard)
+  @Permissions(TypePermission.USER_MANAGEMENT)
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Archive or deactivate user' })
   @ApiOkResponse({ type: User, description: 'Successfully performed' })
@@ -220,8 +220,8 @@ export class UsersController {
   }
 
   @Get('/:userId/accessgroups')
-  @UseGuards(RolesGuard)
-  @Roles(TypeRole.ADMIN)
+  @UseGuards(PermissionsGuard)
+  @Permissions(TypePermission.USER_MANAGEMENT)
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Get access groups for selected user' })
   @ApiOkResponse({ type: User, description: 'Successfully retrieved' })
@@ -243,8 +243,8 @@ export class UsersController {
   }
 
   @Put('/:userId/accessgroups')
-  @UseGuards(RolesGuard)
-  @Roles(TypeRole.ADMIN)
+  @UseGuards(PermissionsGuard)
+  @Permissions(TypePermission.USER_MANAGEMENT)
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Update user access groups' })
   @ApiOkResponse({ type: User, description: 'Successfully updated' })
@@ -267,8 +267,8 @@ export class UsersController {
   }
 
   @Put('/:userId/accessgroups/:accessGroupId')
-  @UseGuards(RolesGuard)
-  @Roles(TypeRole.ADMIN)
+  @UseGuards(PermissionsGuard)
+  @Permissions(TypePermission.USER_MANAGEMENT)
   @ApiCookieAuth()
   @ApiOperation({
     summary: "Update activeness for selected user's access group",
@@ -304,8 +304,8 @@ export class UsersController {
   }
 
   @Delete('/:userId/accessgroups/:accessGroupId')
-  @UseGuards(RolesGuard)
-  @Roles(TypeRole.ADMIN)
+  @UseGuards(PermissionsGuard)
+  @Permissions(TypePermission.USER_MANAGEMENT)
   @ApiCookieAuth()
   @ApiOperation({
     summary: "Unlink selected user's access group",
@@ -340,8 +340,8 @@ export class UsersController {
 
   @Post('/:userId/cards')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(RolesGuard)
-  @Roles(TypeRole.ADMIN)
+  @UseGuards(PermissionsGuard)
+  @Permissions(TypePermission.KEY_MANAGEMENT)
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Create new user cards' })
   @ApiOkResponse({ type: User, description: 'Successfully created' })
@@ -364,8 +364,8 @@ export class UsersController {
   }
 
   @Put('/:userId/cards')
-  @UseGuards(RolesGuard)
-  @Roles(TypeRole.ADMIN)
+  @UseGuards(PermissionsGuard)
+  @Permissions(TypePermission.KEY_MANAGEMENT)
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Update user card' })
   @ApiOkResponse({ type: User, description: 'Successfully updated' })
@@ -388,8 +388,8 @@ export class UsersController {
   }
 
   @Put('/:userId/cards/:cardId')
-  @UseGuards(RolesGuard)
-  @Roles(TypeRole.ADMIN)
+  @UseGuards(PermissionsGuard)
+  @Permissions(TypePermission.KEY_MANAGEMENT)
   @ApiCookieAuth()
   @ApiOperation({
     summary: "Update activeness for selected user's card",
@@ -425,8 +425,8 @@ export class UsersController {
   }
 
   @Delete('/:userId/cards/:cardId')
-  @UseGuards(RolesGuard)
-  @Roles(TypeRole.ADMIN)
+  @UseGuards(PermissionsGuard)
+  @Permissions(TypePermission.KEY_MANAGEMENT)
   @ApiCookieAuth()
   @ApiOperation({
     summary: "Delete selected user's card",
@@ -478,8 +478,8 @@ export class UsersController {
     return this.userService.resetPassword(resetPasswordDto, originHeader);
   }
 
-  @UseGuards(RolesGuard)
-  @Roles(TypeRole.ADMIN)
+  @UseGuards(PermissionsGuard)
+  @Permissions(TypePermission.USER_MANAGEMENT)
   @Put('/:userId/password/reset')
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Send password reset email for selected user' })

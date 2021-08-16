@@ -17,18 +17,18 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { Roles } from '../auth/decorator/roles-auth.decorator';
-import { RolesGuard } from '../auth/guard/roles.guard';
 import { InvalidEntityInterceptor } from '../interceptor/invalid-entity.interceptor';
-import { TypeRole } from '../roles/roles.model';
 import { AccountService } from './account.service';
 import { Request } from 'express';
 import { UpdateAccountDto } from './dto/update-account.dto';
+import { Permissions } from '../auth/decorator/permissions-auth.decorator';
+import { TypePermission } from '../permission/permission.model';
+import { PermissionsGuard } from '../auth/guard/permissions.guard';
 
 @ApiCookieAuth()
 @ApiTags('account')
 @UseInterceptors(InvalidEntityInterceptor)
-@UseGuards(RolesGuard)
+@UseGuards(PermissionsGuard)
 @Controller('account')
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
@@ -39,7 +39,7 @@ export class AccountController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Roles(TypeRole.MEMBER, TypeRole.TIER_ADMIN, TypeRole.ADMIN)
+  @Permissions(TypePermission.ACCOUNT_MANAGEMENT)
   @Get()
   getAccountInfo(@Req() request: Request) {
     return this.accountService.getAccountInfo(request.user);
@@ -52,7 +52,7 @@ export class AccountController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Roles(TypeRole.MEMBER, TypeRole.TIER_ADMIN, TypeRole.ADMIN)
+  @Permissions(TypePermission.ACCOUNT_MANAGEMENT)
   @Put()
   updateAccount(@Body() dto: UpdateAccountDto, @Req() request: Request) {
     return this.accountService.updateAccount(dto, request.user);
@@ -64,7 +64,7 @@ export class AccountController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Roles(TypeRole.MEMBER, TypeRole.TIER_ADMIN, TypeRole.ADMIN)
+  @Permissions(TypePermission.ACCOUNT_MANAGEMENT)
   @Delete()
   deleteAccount(@Req() request: Request) {
     const user = request.user;

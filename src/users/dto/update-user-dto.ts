@@ -11,9 +11,12 @@ import {
   Matches,
   ValidateIf,
 } from 'class-validator';
-import { TypeRole } from '../../roles/roles.model';
 import { TypeUserStatus } from '../users.model';
-import { PHONE_REGEX } from './create-user.dto';
+import {
+  PHONE_REGEX,
+  TypeTierAdminOption,
+  TypeUserRole,
+} from './create-user.dto';
 
 export enum UserStatusForUpdate {
   ARCHIVED = TypeUserStatus.ARCHIVED,
@@ -37,6 +40,7 @@ export class UpdateUserDto {
         !dto.phoneNumber &&
         !dto.employeeNumber &&
         !dto.department &&
+        !dto.roleOption &&
         !dto.email),
   )
   @ApiModelProperty({ required: false })
@@ -54,6 +58,7 @@ export class UpdateUserDto {
         !dto.phoneNumber &&
         !dto.employeeNumber &&
         !dto.department &&
+        !dto.roleOption &&
         !dto.email),
   )
   @ApiModelProperty({ required: false })
@@ -70,6 +75,7 @@ export class UpdateUserDto {
         !dto.role &&
         !dto.phoneNumber &&
         !dto.employeeNumber &&
+        !dto.roleOption &&
         !dto.department),
   )
   @ApiModelProperty({ required: false })
@@ -86,6 +92,7 @@ export class UpdateUserDto {
         !dto.phoneNumber &&
         !dto.employeeNumber &&
         !dto.department &&
+        !dto.roleOption &&
         !dto.email),
   )
   @ApiProperty({
@@ -95,7 +102,7 @@ export class UpdateUserDto {
   })
   readonly status: UserStatusForUpdate;
 
-  @IsEnum(TypeRole)
+  @IsEnum(TypeUserRole)
   @ValidateIf(
     (dto) =>
       dto.role ||
@@ -106,10 +113,36 @@ export class UpdateUserDto {
         !dto.phoneNumber &&
         !dto.employeeNumber &&
         !dto.department &&
+        !dto.roleOption &&
         !dto.email),
   )
-  @ApiProperty({ enum: TypeRole, enumName: 'TypeRole', required: false })
-  readonly role: TypeRole;
+  @ApiProperty({
+    enum: TypeUserRole,
+    enumName: 'TypeUserRole',
+    required: false,
+  })
+  readonly role: TypeUserRole;
+
+  @IsEnum(TypeTierAdminOption)
+  @ValidateIf(
+    (dto) =>
+      dto.roleOption ||
+      (!dto.fullName &&
+        !dto.status &&
+        !dto.role &&
+        !dto.profilePicture &&
+        dto.profilePicture !== null &&
+        !dto.phoneNumber &&
+        !dto.employeeNumber &&
+        !dto.department &&
+        !dto.email),
+  )
+  @ApiProperty({
+    enum: TypeTierAdminOption,
+    enumName: 'TypeTierAdminOption',
+    required: false,
+  })
+  readonly roleOption: TypeTierAdminOption;
 
   @IsString()
   @Matches(PHONE_REGEX, {
@@ -126,6 +159,7 @@ export class UpdateUserDto {
         dto.profilePicture !== null &&
         !dto.employeeNumber &&
         !dto.department &&
+        !dto.roleOption &&
         !dto.email),
   )
   @ApiModelProperty({ required: false })
@@ -144,6 +178,7 @@ export class UpdateUserDto {
         !dto.profilePicture &&
         dto.profilePicture !== null &&
         !dto.department &&
+        !dto.roleOption &&
         !dto.email),
   )
   @ApiModelProperty({ required: false })
@@ -161,6 +196,7 @@ export class UpdateUserDto {
         !dto.employeeNumber &&
         !dto.profilePicture &&
         dto.profilePicture !== null &&
+        !dto.roleOption &&
         !dto.email),
   )
   @ApiModelProperty({ required: false })

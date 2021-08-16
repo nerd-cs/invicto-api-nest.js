@@ -22,18 +22,18 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { isPositive } from 'class-validator';
-import { Roles } from '../auth/decorator/roles-auth.decorator';
-import { RolesGuard } from '../auth/guard/roles.guard';
+import { Permissions } from '../auth/decorator/permissions-auth.decorator';
+import { PermissionsGuard } from '../auth/guard/permissions.guard';
 import { InvalidEntityInterceptor } from '../interceptor/invalid-entity.interceptor';
 import { PaginationRequestDto } from '../pagination/pagination-request.dto';
-import { TypeRole } from '../roles/roles.model';
+import { TypePermission } from '../permission/permission.model';
 import { DoorService } from './door.service';
 import { UpdateDoorDto } from './dto/update-door.dto';
 
 @ApiCookieAuth()
 @ApiTags('door')
 @UseInterceptors(InvalidEntityInterceptor)
-@UseGuards(RolesGuard)
+@UseGuards(PermissionsGuard)
 @Controller('door')
 export class DoorController {
   constructor(private readonly doorService: DoorService) {}
@@ -46,7 +46,7 @@ export class DoorController {
     description: "User doesn't have permissions to access this resource",
   })
   @ApiQuery({ name: 'locationId', required: true })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.ALL_ACCESS)
   @Get()
   getAllForLocation(@Query('locationId', ParseIntPipe) locationId: number) {
     if (!isPositive(locationId)) {
@@ -65,7 +65,7 @@ export class DoorController {
   })
   @ApiQuery({ name: 'page' })
   @ApiQuery({ name: 'limit' })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.ALL_ACCESS)
   @Get('/list')
   getSchedulesPage(@Query() paginationDto: PaginationRequestDto) {
     return this.doorService.getDoorPage(paginationDto);
@@ -78,7 +78,7 @@ export class DoorController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.ALL_ACCESS)
   @Put()
   updateDoor(@Body() updateDoorDto: UpdateDoorDto) {
     return this.doorService.updateDoor(updateDoorDto);
@@ -92,7 +92,7 @@ export class DoorController {
     description: "User doesn't have permissions to access this resource",
   })
   @ApiParam({ name: 'doorId' })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.ALL_ACCESS)
   @Put('/:doorId/test')
   testDoor(@Param('doorId', ParseIntPipe) doorId: number) {
     if (!isPositive(doorId)) {
