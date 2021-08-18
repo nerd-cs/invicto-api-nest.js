@@ -7,7 +7,6 @@ import {
   IsEnum,
   IsNotEmpty,
   IsOptional,
-  IsPhoneNumber,
   IsString,
   Matches,
   ValidateNested,
@@ -15,7 +14,7 @@ import {
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 import { ApiProperty } from '@nestjs/swagger';
 import { AssignLocationDto } from './assign-location.dto';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { CreateCardDto } from '../../card/dto/create-card.dto';
 
 export class CreateUserDto {
@@ -26,12 +25,15 @@ export class CreateUserDto {
 
   @IsString()
   @IsNotEmpty()
-  @Matches('^([A-z]+ ?[A-z])+$')
+  @Transform(({ value }) => value?.trim())
   @ApiModelProperty()
   readonly fullName: string;
 
-  @IsPhoneNumber()
   @IsNotEmpty()
+  @Matches(/^\+1\d{10}$/, {
+    message: (validationArguments) =>
+      `${validationArguments.property} has invalid format`,
+  })
   @ApiModelProperty()
   readonly phoneNumber: string;
 
