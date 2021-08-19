@@ -38,6 +38,7 @@ import { CompleteRegistrationDto } from './dto/complete-registration.dto';
 import { isPositive } from 'class-validator';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { UserPaginationRequestDto } from '../pagination/user-pagination-request.dto';
+import { CreateCollaboratorDto } from './dto/create-collaborator.dto';
 
 @Controller('users')
 @UseInterceptors(EntityAlreadyExistsInterceptor, InvalidEntityInterceptor)
@@ -90,7 +91,7 @@ export class UsersController {
   @Roles(TypeRole.ADMIN)
   @HttpCode(HttpStatus.OK)
   @ApiCookieAuth()
-  @ApiOperation({ summary: 'Create new user' })
+  @ApiOperation({ summary: 'Create new user with access to building' })
   @ApiOkResponse({ type: User, description: 'Successfully created' })
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
   @ApiUnauthorizedResponse({ description: 'User is unauthorized' })
@@ -98,9 +99,34 @@ export class UsersController {
     description: "User doesn't have permissions to access this resource",
   })
   createUser(@Body() userDto: CreateUserDto, @Req() request: Request) {
+    return this.userService.createUser(userDto, request.user);
+  }
+
+  @Post('/collaborator')
+  @UseGuards(RolesGuard)
+  @Roles(TypeRole.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiCookieAuth()
+  @ApiOperation({
+    summary: 'Create new collaborator with access to the platform',
+  })
+  @ApiOkResponse({ type: User, description: 'Successfully created' })
+  @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
+  @ApiUnauthorizedResponse({ description: 'User is unauthorized' })
+  @ApiForbiddenResponse({
+    description: "User doesn't have permissions to access this resource",
+  })
+  createCollaborator(
+    @Body() userDto: CreateCollaboratorDto,
+    @Req() request: Request,
+  ) {
     const originHeader = request.header('origin');
 
-    return this.userService.createUser(userDto, request.user, originHeader);
+    return this.userService.createCollaborator(
+      userDto,
+      request.user,
+      originHeader,
+    );
   }
 
   @Put('/:userId/invite')
@@ -111,17 +137,12 @@ export class UsersController {
   @ApiOkResponse({ type: User, description: 'Successfully invited' })
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
   @ApiParam({ name: 'userId', required: true })
-  inviteUser(
-    @Param('userId', ParseIntPipe) userId: number,
-    @Req() request: Request,
-  ) {
+  inviteUser(@Param('userId', ParseIntPipe) userId: number) {
     if (!isPositive(userId)) {
       throw new BadRequestException('userId must be a positive number');
     }
 
-    const originHeader = request.header('origin');
-
-    return this.userService.inviteUser(userId, originHeader);
+    return this.userService.inviteUser(userId);
   }
 
   @Put('/confirm')

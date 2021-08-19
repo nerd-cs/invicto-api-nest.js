@@ -1,10 +1,23 @@
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable } from '@nestjs/common';
 import { Token } from '../token/token.model';
+import { User } from '../users/users.model';
 
 @Injectable()
 export class MailService {
   constructor(private readonly mailerService: MailerService) {}
+
+  async sendInvitation(user: User, accessGroups: string) {
+    await this.mailerService.sendMail({
+      to: user.email,
+      subject: 'Welcome to Invicto!',
+      template: './invitation',
+      context: {
+        name: user.fullName,
+        accessGroups,
+      },
+    });
+  }
 
   async sendEmailConfirmation(token: Token, origin: string) {
     const serverAddress = this.constructServerAddress(origin);
