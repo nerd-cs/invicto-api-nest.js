@@ -18,6 +18,7 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { PendingInvitationException } from '../exception/pending-invitation.exception';
 import { UserPaginationRequestDto } from '../pagination/user-pagination-request.dto';
 import { TypeRole } from '../roles/roles.model';
+import { CreateCollaboratorDto } from './dto/create-collaborator.dto';
 
 export const SALT_LENGTH = 10;
 export const BASE_64_PREFIX = 'data:image/jpg;base64,';
@@ -135,21 +136,11 @@ export class UsersService {
     return result;
   }
 
-  async createUser(
-    userDto: CreateUserDto,
-    admin: Express.User,
-    originHeader: string,
-  ) {
+  async createUser(userDto: CreateUserDto, admin: Express.User) {
     const { role, locations, cards, instantlyInvite, ...restUserAttributes } =
       userDto;
 
-    const existingUser = await this.userRepository.findOne({
-      where: { email: userDto.email },
-    });
-
-    if (existingUser) {
-      throw new EntityAlreadyExistsException({ email: userDto.email });
-    }
+    await this.throwIfEmailAlreadyTaken(userDto.email);
 
     const roleEntity = await this.roleService.getRoleByName(role);
 
@@ -174,10 +165,20 @@ export class UsersService {
     const roles = savedUser.roles.map((role) => role.value);
 
     if (instantlyInvite) {
-      this.sendInvitation(savedUser, originHeader);
+      this.sendInvitation(savedUser);
     }
 
     return { id, email, fullName, phoneNumber, allowSso, roles };
+  }
+
+  private async throwIfEmailAlreadyTaken(email: string) {
+    const existingUser = await this.userRepository.findOne({
+      where: { email: email },
+    });
+
+    if (existingUser) {
+      throw new EntityAlreadyExistsException({ email: email });
+    }
   }
 
   private async validateAndAssignAccessGroups(
@@ -239,8 +240,8 @@ export class UsersService {
     };
   }
 
-  async inviteUser(userId: number, originHeader: string) {
-    const user = await this.getById(userId);
+  async inviteUser(userId: number) {
+    const user = await this.getById(userId, ['accessGroups']);
 
     if (user.status === TypeUserStatus.ACTIVE) {
       throw new InvalidInvitationException('Email already confirmed');
@@ -250,13 +251,46 @@ export class UsersService {
       throw new InvalidInvitationException('Invitation already sent');
     }
 
-    await this.sendInvitation(user, originHeader);
+    await this.sendInvitation(user);
 
     user.status = TypeUserStatus.PENDING;
     await this.userRepository.save(user);
   }
 
-  private async sendInvitation(user: User, originHeader: string) {
+  async createCollaborator(
+    dto: CreateCollaboratorDto,
+    admin: Express.User,
+    originHeader: string,
+  ) {
+    const { role, ...rest } = dto;
+
+    await this.throwIfEmailAlreadyTaken(dto.email);
+
+    const roleEntity = await this.roleService.getRoleByName(role);
+
+    if (roleEntity) {
+      rest['roles'] = [roleEntity];
+    }
+
+    rest['status'] = TypeUserStatus.PENDING;
+    rest['company'] = admin['company'];
+
+    const savedUser = await this.userRepository.save(rest);
+
+    this.sendEmailConfirmation(savedUser, originHeader);
+
+    return this.sanitizeUserInfo(savedUser);
+  }
+
+  private async sendInvitation(user: User) {
+    const accessGroups = user.accessGroups
+      .map((group) => group.name)
+      .join(', ');
+
+    this.mailService.sendInvitation(user, accessGroups);
+  }
+
+  private async sendEmailConfirmation(user: User, originHeader: string) {
     const token = await this.tokenService.createToken(user);
 
     this.mailService.sendEmailConfirmation(token, originHeader);
@@ -297,8 +331,10 @@ export class UsersService {
     return this.sanitizeUserInfo(await this.userRepository.save(rest));
   }
 
-  async getById(userId: number) {
-    const user = await this.userRepository.findOne(userId);
+  async getById(userId: number, relations: string[] = undefined) {
+    const user = await this.userRepository.findOne(userId, {
+      relations: relations,
+    });
 
     if (!user) {
       throw new EntityNotFoundException({ userId: userId });

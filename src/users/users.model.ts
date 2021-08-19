@@ -35,7 +35,7 @@ export class User {
   @ApiModelProperty()
   fullName: string;
 
-  @Column({ name: 'phone_number', type: 'varchar', nullable: false })
+  @Column({ name: 'phone_number', type: 'varchar', nullable: true })
   @ApiModelProperty()
   phoneNumber: string;
 
