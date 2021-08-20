@@ -21,7 +21,10 @@ export class ZoneService {
   async getAllForLocation(locationId: number) {
     const location = await this.locationService.getById(locationId);
 
-    return await this.zoneRepository.find({ where: { location: location } });
+    return await this.zoneRepository.find({
+      where: { location: location },
+      relations: ['doors', 'childZones'],
+    });
   }
 
   async getZonesPage(paginationDto: PaginationRequestDto, user: Express.User) {
@@ -30,7 +33,7 @@ export class ZoneService {
     const offset = (paginationDto.page - 1) * paginationDto.limit;
 
     return await this.zoneRepository.find({
-      relations: ['location'],
+      relations: ['location', 'doors', 'childZones'],
       where: { location: { id: In(locationIds) } },
       order: { name: 'ASC' },
       take: paginationDto.limit,
