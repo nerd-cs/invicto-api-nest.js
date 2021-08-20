@@ -17,6 +17,7 @@ import { AssignLocationDto } from './assign-location.dto';
 import { Transform, Type } from 'class-transformer';
 import { CreateCardDto } from '../../card/dto/create-card.dto';
 
+export const PHONE_REGEX = /^\+1\d{10}$/;
 export class CreateUserDto {
   @IsEmail()
   @IsNotEmpty()
@@ -30,7 +31,7 @@ export class CreateUserDto {
   readonly fullName: string;
 
   @IsNotEmpty()
-  @Matches(/^\+1\d{10}$/, {
+  @Matches(PHONE_REGEX, {
     message: (validationArguments) =>
       `${validationArguments.property} has invalid format`,
   })

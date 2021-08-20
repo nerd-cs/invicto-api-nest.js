@@ -37,4 +37,10 @@ export class TokenService {
 
     await this.tokenRepository.remove(token);
   }
+
+  async removeAll(tokens: Token[]) {
+    if (tokens) {
+      this.tokenRepository.remove(tokens);
+    }
+  }
 }

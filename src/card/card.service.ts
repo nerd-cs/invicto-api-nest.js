@@ -13,4 +13,10 @@ export class CardService {
   async createCards(dtos: CreateCardDto[]) {
     return this.cardRepository.create(dtos);
   }
+
+  async removeAll(cards: Card[]) {
+    if (cards) {
+      this.cardRepository.remove(cards);
+    }
+  }
 }
