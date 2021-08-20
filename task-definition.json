@@ -1,0 +1,26 @@
+{
+  "requiresCompatibilities": ["FARGATE"],
+  "inferenceAccelerators": [],
+  "containerDefinitions": [
+    {
+      "name": "invicto-backend",
+      "image": "invicto-backend:00000",
+      "resourceRequirements": null,
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": "8080",
+          "protocol": "tcp"
+        }
+      ]
+    }
+  ],
+  "volumes": [],
+  "networkMode": "awsvpc",
+  "memory": "512",
+  "cpu": "256",
+  "executionRoleArn": "arn:aws:iam:457676442951:role/invicto-backend-execution-role",
+  "family": "invicto-backend-task-definition",
+  "taskRoleArn": "",
+  "placementConstraints": []
+}
