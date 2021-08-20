@@ -19,6 +19,7 @@ import { PendingInvitationException } from '../exception/pending-invitation.exce
 import { UserPaginationRequestDto } from '../pagination/user-pagination-request.dto';
 import { TypeRole } from '../roles/roles.model';
 import { CreateCollaboratorDto } from './dto/create-collaborator.dto';
+import { CardService } from '../card/card.service';
 
 export const SALT_LENGTH = 10;
 export const BASE_64_PREFIX = 'data:image/jpg;base64,';
@@ -30,6 +31,7 @@ export class UsersService {
     private readonly accessGroupService: AccessGroupService,
     private readonly mailService: MailService,
     private readonly tokenService: TokenService,
+    private readonly cardService: CardService,
   ) {}
 
   async getUserByEmail(email: string): Promise<User> {
@@ -221,11 +223,9 @@ export class UsersService {
       twoStepAuth,
     } = user;
 
-    const plainRoles = roles.map((role) => role.value);
+    const plainRoles = roles?.map((role) => role.value);
 
-    const picture = profilePicture
-      ? `${BASE_64_PREFIX}${profilePicture.toString('base64')}`
-      : null;
+    const picture = this.prepareProfilePicture(profilePicture);
 
     return {
       id,
@@ -238,6 +238,12 @@ export class UsersService {
       phoneNumber,
       twoStepAuth,
     };
+  }
+
+  prepareProfilePicture(profilePicture: Buffer) {
+    return profilePicture
+      ? `${BASE_64_PREFIX}${profilePicture.toString('base64')}`
+      : null;
   }
 
   async inviteUser(userId: number) {
@@ -408,5 +414,14 @@ export class UsersService {
     rest.password = await bcrypt.hash(confirmPasswordDto.password, SALT_LENGTH);
 
     return this.sanitizeUserInfo(await this.userRepository.save(rest));
+  }
+
+  async deleteById(id: number) {
+    const user = await this.getById(id, ['tokens', 'cards']);
+
+    await this.tokenService.removeAll(user.tokens);
+    await this.cardService.removeAll(user.cards);
+
+    return this.sanitizeUserInfo(await this.userRepository.remove(user));
   }
 }

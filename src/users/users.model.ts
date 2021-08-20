@@ -58,15 +58,18 @@ export class User {
   profilePicture: Buffer;
 
   @Column({ name: 'job_title', type: 'varchar', nullable: true })
+  @ApiModelProperty({ required: false })
   jobTitle: string;
 
   @Column({ type: 'varchar', nullable: true })
   address: string;
 
   @Column({ type: 'varchar', nullable: true })
+  @ApiModelProperty({ required: false })
   city: string;
 
   @Column({ type: 'varchar', nullable: true })
+  @ApiModelProperty({ required: false })
   country: string;
 
   @Column({ name: 'allow_sso', type: 'boolean', default: false })

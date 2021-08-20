@@ -21,6 +21,7 @@ import { AccessGroupScheduleZoneModule } from './access-group-schedule-zone/acce
 import { ControllerModule } from './controller/controller.module';
 import { MailModule } from './mail/mail.module';
 import { TokenModule } from './token/token.module';
+import { AccountModule } from './account/account.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { TokenModule } from './token/token.module';
     ControllerModule,
     MailModule,
     TokenModule,
+    AccountModule,
   ],
   controllers: [AuthController, UsersController, AppController],
   providers: [],
