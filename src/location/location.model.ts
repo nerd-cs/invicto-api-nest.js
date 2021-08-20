@@ -1,3 +1,4 @@
+import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 import {
   Column,
   Entity,
@@ -16,9 +17,11 @@ import { Zone } from '../zone/zone.model';
 @Entity('location')
 export class Location {
   @PrimaryGeneratedColumn({ type: 'integer', name: 'id' })
+  @ApiModelProperty()
   id: number;
 
   @Column('varchar', { name: 'name' })
+  @ApiModelProperty()
   name: string;
 
   @OneToMany(() => AccessGroup, (accessGroup) => accessGroup.location)

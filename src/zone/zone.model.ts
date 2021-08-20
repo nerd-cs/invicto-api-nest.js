@@ -12,22 +12,27 @@ import { AccessGroup } from '../access-group/access-group.model';
 import { Location } from '../location/location.model';
 import { Door } from '../door/door.model';
 import { AccessGroupScheduleZone } from '../access-group-schedule-zone/access-group-schedule-zone.model';
+import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 
 @Entity('zone')
 export class Zone {
   @PrimaryGeneratedColumn({ type: 'integer', name: 'id' })
+  @ApiModelProperty()
   id: number;
 
   @Column('varchar', { name: 'name', unique: true })
+  @ApiModelProperty()
   name: string;
 
   @Column('varchar', { name: 'description', nullable: true })
+  @ApiModelProperty({ required: false })
   description: string;
 
   @Column('timestamp with time zone', {
     name: 'updated_at',
     default: () => 'now()',
   })
+  @ApiModelProperty()
   updatedAt: Date;
 
   @ManyToOne(() => AccessGroup, (accessGroup) => accessGroup.zones)
@@ -36,9 +41,11 @@ export class Zone {
 
   @ManyToOne(() => Location, (location) => location.zones)
   @JoinColumn([{ name: 'location_id', referencedColumnName: 'id' }])
+  @ApiModelProperty({ required: false })
   location: Location;
 
   @ManyToMany(() => Door, (door) => door.zones)
+  @ApiModelProperty({ required: false, isArray: true, type: Door })
   doors: Door[];
 
   @ManyToMany(() => Zone, (zone) => zone.childZones)
@@ -47,6 +54,7 @@ export class Zone {
     joinColumns: [{ name: 'parent_zone_id', referencedColumnName: 'id' }],
     inverseJoinColumns: [{ name: 'child_zone_id', referencedColumnName: 'id' }],
   })
+  @ApiModelProperty({ required: false, isArray: true, type: Zone })
   childZones: Zone[];
 
   @ManyToMany(() => Zone, (zone) => zone.parentZones)
