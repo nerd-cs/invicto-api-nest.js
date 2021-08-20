@@ -1,4 +1,5 @@
 FROM node:10 AS builder
+ARG PORT=3000
 
 # Create app directory
 WORKDIR /app
@@ -23,5 +24,6 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/tsconfig.* ./
 COPY --from=builder /app/.prod.env ./
 
-EXPOSE ${PORT}
+# RUN echo "container port: ${PORT}"
+EXPOSE 3000
 CMD [ "npm", "run", "start" ]
