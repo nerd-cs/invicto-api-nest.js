@@ -54,7 +54,7 @@ export class UsersService {
   async getAll(user: Express.User) {
     return await this.userRepository
       .find({ relations: ['roles'], where: { company: user['company'] } })
-      .then((users) => users.map(this.sanitizeUserInfo));
+      .then((users) => users.map(this.sanitizeUserInfo.bind(this)));
   }
 
   async getUsersPage(
