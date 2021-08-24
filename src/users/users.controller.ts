@@ -13,6 +13,7 @@ import {
   Param,
   ParseIntPipe,
   BadRequestException,
+  Delete,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { RolesGuard } from '../auth/guard/roles.guard';
@@ -41,6 +42,8 @@ import { UserPaginationRequestDto } from '../pagination/user-pagination-request.
 import { CreateCollaboratorDto } from './dto/create-collaborator.dto';
 import { ChangeUserStatusDto } from './dto/change-user-status.dto';
 import { UpdateUserDto } from './dto/update-user-dto';
+import { UpdateAccessGroupsDto } from './dto/update-user-access-groups.dto';
+import { ChangeAccessGroupActivenessDto } from './dto/change-access-group-activeness.dto';
 
 @Controller('users')
 @UseInterceptors(EntityAlreadyExistsInterceptor, InvalidEntityInterceptor)
@@ -212,6 +215,125 @@ export class UsersController {
     }
 
     return this.userService.changeUserStatus(userId, request.user, dto);
+  }
+
+  @Get('/:userId/accessgroups')
+  @UseGuards(RolesGuard)
+  @Roles(TypeRole.ADMIN)
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'Get access groups for selected user' })
+  @ApiOkResponse({ type: User, description: 'Successfully retrieved' })
+  @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
+  @ApiUnauthorizedResponse({ description: 'User is unauthorized' })
+  @ApiForbiddenResponse({
+    description: "User doesn't have permissions to access this resource",
+  })
+  @ApiParam({ name: 'userId', required: true })
+  getUserAccessGroups(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Req() request: Request,
+  ) {
+    if (!isPositive(userId)) {
+      throw new BadRequestException('userId must be a positive number');
+    }
+
+    return this.userService.getUserAccessGroups(userId, request.user);
+  }
+
+  @Put('/:userId/accessgroups')
+  @UseGuards(RolesGuard)
+  @Roles(TypeRole.ADMIN)
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'Update user access groups' })
+  @ApiOkResponse({ type: User, description: 'Successfully updated' })
+  @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
+  @ApiUnauthorizedResponse({ description: 'User is unauthorized' })
+  @ApiForbiddenResponse({
+    description: "User doesn't have permissions to access this resource",
+  })
+  @ApiParam({ name: 'userId', required: true })
+  updateUserAccessGroups(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Req() request: Request,
+    @Body() dto: UpdateAccessGroupsDto,
+  ) {
+    if (!isPositive(userId)) {
+      throw new BadRequestException('userId must be a positive number');
+    }
+
+    return this.userService.updateUserAccessGroups(userId, request.user, dto);
+  }
+
+  @Put('/:userId/accessgroups/:accessGroupId')
+  @UseGuards(RolesGuard)
+  @Roles(TypeRole.ADMIN)
+  @ApiCookieAuth()
+  @ApiOperation({
+    summary: "Update activeness for selected user's access group",
+  })
+  @ApiOkResponse({ type: User, description: 'Successfully updated' })
+  @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
+  @ApiUnauthorizedResponse({ description: 'User is unauthorized' })
+  @ApiForbiddenResponse({
+    description: "User doesn't have permissions to access this resource",
+  })
+  @ApiParam({ name: 'userId', required: true })
+  @ApiParam({ name: 'accessGroupId', required: true })
+  changeAccessGroupActiveness(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Param('accessGroupId', ParseIntPipe) accessGroupId: number,
+    @Req() request: Request,
+    @Body() dto: ChangeAccessGroupActivenessDto,
+  ) {
+    if (!isPositive(userId)) {
+      throw new BadRequestException('userId must be a positive number');
+    }
+
+    if (!isPositive(accessGroupId)) {
+      throw new BadRequestException('accessGroupId must be a positive number');
+    }
+
+    return this.userService.changeAccessGroupActiveness(
+      userId,
+      accessGroupId,
+      request.user,
+      dto,
+    );
+  }
+
+  @Delete('/:userId/accessgroups/:accessGroupId')
+  @UseGuards(RolesGuard)
+  @Roles(TypeRole.ADMIN)
+  @ApiCookieAuth()
+  @ApiOperation({
+    summary: "Unlink selected user's access group",
+  })
+  @ApiOkResponse({ type: User, description: 'Successfully performed' })
+  @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
+  @ApiUnauthorizedResponse({ description: 'User is unauthorized' })
+  @ApiForbiddenResponse({
+    description: "User doesn't have permissions to access this resource",
+  })
+  @ApiParam({ name: 'userId', required: true })
+  @ApiParam({ name: 'accessGroupId', required: true })
+  unlinkUserAccessGroup(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Param('accessGroupId', ParseIntPipe) accessGroupId: number,
+    @Req() request: Request,
+  ) {
+    if (!isPositive(userId)) {
+      throw new BadRequestException('userId must be a positive number');
+    }
+
+    if (!isPositive(accessGroupId)) {
+      throw new BadRequestException('accessGroupId must be a positive number');
+    }
+
+    return this.userService.unlinkUserAccessGroup(
+      userId,
+      accessGroupId,
+      request.user,
+    );
   }
 
   @Put('/confirm')

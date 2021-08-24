@@ -26,6 +26,9 @@ import { Card } from '../card/card.model';
 import { ChangeUserStatusDto } from './dto/change-user-status.dto';
 import { ConstraintViolationException } from '../exception/constraint-violation.exception';
 import { UpdateUserDto } from './dto/update-user-dto';
+import { UpdateAccessGroupsDto } from './dto/update-user-access-groups.dto';
+import { ChangeAccessGroupActivenessDto } from './dto/change-access-group-activeness.dto';
+import { UserAccessGroupService } from '../user-access-group/user-access-group.service';
 
 export const SALT_LENGTH = 10;
 export const BASE_64_PREFIX = 'data:image/jpg;base64,';
@@ -39,6 +42,7 @@ export class UsersService {
     private readonly tokenService: TokenService,
     private readonly cardService: CardService,
     private readonly locationService: LocationService,
+    private readonly userAccessGroupService: UserAccessGroupService,
   ) {}
 
   async getUserByEmail(email: string): Promise<User> {
@@ -547,10 +551,11 @@ export class UsersService {
   }
 
   async deleteById(id: number) {
-    const user = await this.getById(id, ['tokens', 'cards']);
+    const user = await this.getById(id, ['tokens', 'cards', 'accessGroups']);
 
     await this.tokenService.removeAll(user.tokens);
     await this.cardService.removeAll(user.cards);
+    await this.userAccessGroupService.removeAllForUser(user);
 
     return this.sanitizeUserInfo(await this.userRepository.remove(user));
   }
@@ -600,5 +605,103 @@ export class UsersService {
     user.department = dto.department || user.department;
 
     return this.sanitizeUserInfo(await this.updateUser(user));
+  }
+
+  async getUserAccessGroups(userId: number, admin: Express.User) {
+    const user = await this.getById(userId, undefined, {
+      company: admin['company'],
+    });
+
+    return await this.accessGroupService.getAllForUser(user);
+  }
+
+  async changeAccessGroupActiveness(
+    userId: number,
+    accessGroupId: number,
+    admin: Express.User,
+    dto: ChangeAccessGroupActivenessDto,
+  ) {
+    const user = await this.getUserByIdAndAccessGroup(
+      userId,
+      accessGroupId,
+      admin,
+    );
+
+    return await this.userAccessGroupService.updateActiveness(
+      user.accessGroups[0],
+      dto.isActive,
+    );
+  }
+
+  async unlinkUserAccessGroup(
+    userId: number,
+    accessGroupId: number,
+    admin: Express.User,
+  ) {
+    const user = await this.getUserByIdAndAccessGroup(
+      userId,
+      accessGroupId,
+      admin,
+    );
+
+    return await this.userAccessGroupService.unlinkAccessGroup(
+      user.accessGroups[0],
+    );
+  }
+
+  private async getUserByIdAndAccessGroup(
+    userId: number,
+    accessGroupId: number,
+    admin: Express.User,
+  ) {
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect(
+        'user.accessGroups',
+        'accessGroups',
+        'accessGroups.accessGroupId = :accessGroupId',
+        { accessGroupId: accessGroupId },
+      )
+      .leftJoin('user.company', 'company')
+      .where('user.id = :userId', { userId })
+      .andWhere('company.id = :companyId', {
+        companyId: admin['company']['id'],
+      })
+      .getOne();
+
+    if (!user) {
+      throw new EntityNotFoundException({ userId });
+    }
+
+    if (!user.accessGroups || !user.accessGroups.length) {
+      throw new EntityNotFoundException({ accessGroupId });
+    }
+
+    return user;
+  }
+
+  async updateUserAccessGroups(
+    userId: number,
+    admin: Express.User,
+    dto: UpdateAccessGroupsDto,
+  ) {
+    const user = await this.getById(userId, ['accessGroups'], {
+      company: admin['company'],
+    });
+
+    await this.userAccessGroupService.removeAllForUser(user);
+    await this.validateAndAssignAccessGroups(user, dto.locations);
+
+    const saved = await this.userRepository.save({
+      id: userId,
+      accessGroups: user.accessGroups,
+    });
+
+    return {
+      id: saved.id,
+      accessGroups: saved.accessGroups
+        .map((wrapper) => wrapper.accessGroup)
+        .reduce((prev, accessGroup) => prev.concat(accessGroup), []),
+    };
   }
 }

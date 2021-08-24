@@ -114,7 +114,9 @@ export class User {
   @OneToMany(() => Card, (card) => card.user, { cascade: true })
   cards: Card[];
 
-  @OneToMany(() => UserAccessGroup, (userAccessGroup) => userAccessGroup.user)
+  @OneToMany(() => UserAccessGroup, (userAccessGroup) => userAccessGroup.user, {
+    cascade: true,
+  })
   accessGroups: UserAccessGroup[];
 
   @ManyToOne(() => Company, (company) => company.users)
