@@ -43,7 +43,9 @@ import { CreateCollaboratorDto } from './dto/create-collaborator.dto';
 import { ChangeUserStatusDto } from './dto/change-user-status.dto';
 import { UpdateUserDto } from './dto/update-user-dto';
 import { UpdateAccessGroupsDto } from './dto/update-user-access-groups.dto';
-import { ChangeAccessGroupActivenessDto } from './dto/change-access-group-activeness.dto';
+import { ChangeActivenessDto as ChangeActivenessDto } from './dto/change-activeness.dto';
+import { UpdateUserCardDto } from './dto/update-user-card.dto';
+import { CreateUserCardsDto } from './dto/create-user-cards.dto';
 
 @Controller('users')
 @UseInterceptors(EntityAlreadyExistsInterceptor, InvalidEntityInterceptor)
@@ -283,7 +285,7 @@ export class UsersController {
     @Param('userId', ParseIntPipe) userId: number,
     @Param('accessGroupId', ParseIntPipe) accessGroupId: number,
     @Req() request: Request,
-    @Body() dto: ChangeAccessGroupActivenessDto,
+    @Body() dto: ChangeActivenessDto,
   ) {
     if (!isPositive(userId)) {
       throw new BadRequestException('userId must be a positive number');
@@ -334,6 +336,123 @@ export class UsersController {
       accessGroupId,
       request.user,
     );
+  }
+
+  @Post('/:userId/cards')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(RolesGuard)
+  @Roles(TypeRole.ADMIN)
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'Create new user cards' })
+  @ApiOkResponse({ type: User, description: 'Successfully created' })
+  @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
+  @ApiUnauthorizedResponse({ description: 'User is unauthorized' })
+  @ApiForbiddenResponse({
+    description: "User doesn't have permissions to access this resource",
+  })
+  @ApiParam({ name: 'userId', required: true })
+  createUserCards(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Req() request: Request,
+    @Body() dto: CreateUserCardsDto,
+  ) {
+    if (!isPositive(userId)) {
+      throw new BadRequestException('userId must be a positive number');
+    }
+
+    return this.userService.createUserCards(userId, request.user, dto);
+  }
+
+  @Put('/:userId/cards')
+  @UseGuards(RolesGuard)
+  @Roles(TypeRole.ADMIN)
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'Update user card' })
+  @ApiOkResponse({ type: User, description: 'Successfully updated' })
+  @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
+  @ApiUnauthorizedResponse({ description: 'User is unauthorized' })
+  @ApiForbiddenResponse({
+    description: "User doesn't have permissions to access this resource",
+  })
+  @ApiParam({ name: 'userId', required: true })
+  updateUserCards(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Req() request: Request,
+    @Body() dto: UpdateUserCardDto,
+  ) {
+    if (!isPositive(userId)) {
+      throw new BadRequestException('userId must be a positive number');
+    }
+
+    return this.userService.updateUserCards(userId, request.user, dto);
+  }
+
+  @Put('/:userId/cards/:cardId')
+  @UseGuards(RolesGuard)
+  @Roles(TypeRole.ADMIN)
+  @ApiCookieAuth()
+  @ApiOperation({
+    summary: "Update activeness for selected user's card",
+  })
+  @ApiOkResponse({ type: User, description: 'Successfully updated' })
+  @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
+  @ApiUnauthorizedResponse({ description: 'User is unauthorized' })
+  @ApiForbiddenResponse({
+    description: "User doesn't have permissions to access this resource",
+  })
+  @ApiParam({ name: 'userId', required: true })
+  @ApiParam({ name: 'cardId', required: true })
+  changeCardActiveness(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Param('cardId', ParseIntPipe) cardId: number,
+    @Req() request: Request,
+    @Body() dto: ChangeActivenessDto,
+  ) {
+    if (!isPositive(userId)) {
+      throw new BadRequestException('userId must be a positive number');
+    }
+
+    if (!isPositive(cardId)) {
+      throw new BadRequestException('cardId must be a positive number');
+    }
+
+    return this.userService.changeCardActiveness(
+      userId,
+      cardId,
+      request.user,
+      dto,
+    );
+  }
+
+  @Delete('/:userId/cards/:cardId')
+  @UseGuards(RolesGuard)
+  @Roles(TypeRole.ADMIN)
+  @ApiCookieAuth()
+  @ApiOperation({
+    summary: "Delete selected user's card",
+  })
+  @ApiOkResponse({ type: User, description: 'Successfully deleted' })
+  @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
+  @ApiUnauthorizedResponse({ description: 'User is unauthorized' })
+  @ApiForbiddenResponse({
+    description: "User doesn't have permissions to access this resource",
+  })
+  @ApiParam({ name: 'userId', required: true })
+  @ApiParam({ name: 'cardId', required: true })
+  deleteUserCard(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Param('cardId', ParseIntPipe) cardId: number,
+    @Req() request: Request,
+  ) {
+    if (!isPositive(userId)) {
+      throw new BadRequestException('userId must be a positive number');
+    }
+
+    if (!isPositive(cardId)) {
+      throw new BadRequestException('cardId must be a positive number');
+    }
+
+    return this.userService.deleteUserCard(userId, cardId, request.user);
   }
 
   @Put('/confirm')

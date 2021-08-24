@@ -27,8 +27,10 @@ import { ChangeUserStatusDto } from './dto/change-user-status.dto';
 import { ConstraintViolationException } from '../exception/constraint-violation.exception';
 import { UpdateUserDto } from './dto/update-user-dto';
 import { UpdateAccessGroupsDto } from './dto/update-user-access-groups.dto';
-import { ChangeAccessGroupActivenessDto } from './dto/change-access-group-activeness.dto';
+import { ChangeActivenessDto } from './dto/change-activeness.dto';
 import { UserAccessGroupService } from '../user-access-group/user-access-group.service';
+import { UpdateUserCardDto as UpdateUserCardDto } from './dto/update-user-card.dto';
+import { CreateUserCardsDto } from './dto/create-user-cards.dto';
 
 export const SALT_LENGTH = 10;
 export const BASE_64_PREFIX = 'data:image/jpg;base64,';
@@ -248,6 +250,7 @@ export class UsersService {
       const { createdAt, ...rest } = card;
 
       rest['lastActivity'] = new Date();
+      rest['createdAt'] = createdAt;
 
       result.push(rest);
     });
@@ -626,7 +629,7 @@ export class UsersService {
     userId: number,
     accessGroupId: number,
     admin: Express.User,
-    dto: ChangeAccessGroupActivenessDto,
+    dto: ChangeActivenessDto,
   ) {
     const user = await this.getUserByIdAndAccessGroup(
       userId,
@@ -710,5 +713,76 @@ export class UsersService {
         .map((wrapper) => wrapper.accessGroup)
         .reduce((prev, accessGroup) => prev.concat(accessGroup), []),
     };
+  }
+
+  async updateUserCards(
+    userId: number,
+    admin: Express.User,
+    dto: UpdateUserCardDto,
+  ) {
+    const user = await this.getByIdAndCardId(userId, dto.id, admin);
+
+    return await this.cardService.updateCard(user.cards[0], dto);
+  }
+
+  async changeCardActiveness(
+    userId: number,
+    cardId: number,
+    admin: Express.User,
+    dto: ChangeActivenessDto,
+  ) {
+    const user = await this.getByIdAndCardId(userId, cardId, admin);
+
+    return await this.cardService.updateActiveness(user.cards[0], dto.isActive);
+  }
+
+  async deleteUserCard(userId: number, cardId: number, admin: Express.User) {
+    const user = await this.getByIdAndCardId(userId, cardId, admin);
+
+    return this.cardService.deleteCard(user.cards[0]);
+  }
+
+  async createUserCards(
+    userId: number,
+    admin: Express.User,
+    dto: CreateUserCardsDto,
+  ) {
+    const user = await this.getById(userId, ['cards'], {
+      company: admin['company'],
+    });
+
+    return (await this.cardService.createCards(dto.cards, user)).map((card) => {
+      const { user, ...rest } = card;
+
+      return rest;
+    });
+  }
+
+  private async getByIdAndCardId(
+    userId: number,
+    cardId: number,
+    admin: Express.User,
+  ) {
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.cards', 'cards', 'cards.id = :cardId', {
+        cardId,
+      })
+      .leftJoin('user.company', 'company')
+      .where('user.id = :userId', { userId })
+      .andWhere('company.id = :companyId', {
+        companyId: admin['company']['id'],
+      })
+      .getOne();
+
+    if (!user) {
+      throw new EntityNotFoundException({ userId });
+    }
+
+    if (!user.cards || !user.cards.length) {
+      throw new EntityNotFoundException({ cardId });
+    }
+
+    return user;
   }
 }
