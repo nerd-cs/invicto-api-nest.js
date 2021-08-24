@@ -1,11 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConstraintViolationException } from '../exception/constraint-violation.exception';
 import { User } from '../users/users.model';
-import {
-  BASE_64_PREFIX,
-  SALT_LENGTH,
-  UsersService,
-} from '../users/users.service';
+import { SALT_LENGTH, UsersService } from '../users/users.service';
 import { UpdateAccountDto } from './dto/update-account.dto';
 import * as bcrypt from 'bcryptjs';
 
@@ -23,9 +19,8 @@ export class AccountService {
     const userEntity = await this.userService.getById(user['id'], ['company']);
 
     if (dto.profilePicture) {
-      userEntity.profilePicture = Buffer.from(
-        dto.profilePicture.replace(BASE_64_PREFIX, ''),
-        'base64',
+      userEntity.profilePicture = this.userService.preparePicture(
+        dto.profilePicture,
       );
     }
 

@@ -15,8 +15,8 @@ import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-prop
 import { ApiProperty } from '@nestjs/swagger';
 import { Card } from '../card/card.model';
 import { Company } from '../company/company.model';
-import { AccessGroup } from '../access-group/access-group.model';
 import { Token } from '../token/token.model';
+import { UserAccessGroup } from '../user-access-group/user-access-group.model';
 
 export enum TypeUserStatus {
   PENDING = 'PENDING',
@@ -61,6 +61,10 @@ export class User {
   @ApiModelProperty({ required: false })
   jobTitle: string;
 
+  @Column('varchar', { name: 'department', nullable: true })
+  @ApiModelProperty({ required: false })
+  department: string;
+
   @Column({ type: 'varchar', nullable: true })
   address: string;
 
@@ -91,6 +95,13 @@ export class User {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
   updatedAt: Date;
 
+  @ManyToOne(() => User, (user) => user.updatedUsers)
+  @JoinColumn([{ name: 'updated_by', referencedColumnName: 'id' }])
+  updatedBy: User;
+
+  @OneToMany(() => User, (users) => users.updatedBy)
+  updatedUsers: User[];
+
   @ManyToMany(() => Role, (role) => role.users, { cascade: true })
   @JoinTable({
     name: 'user_role',
@@ -103,9 +114,10 @@ export class User {
   @OneToMany(() => Card, (card) => card.user, { cascade: true })
   cards: Card[];
 
-  @ManyToMany(() => AccessGroup, (accessGroup) => accessGroup.users)
-  @ApiModelProperty({ isArray: true, type: 'string' })
-  accessGroups: AccessGroup[];
+  @OneToMany(() => UserAccessGroup, (userAccessGroup) => userAccessGroup.user, {
+    cascade: true,
+  })
+  accessGroups: UserAccessGroup[];
 
   @ManyToOne(() => Company, (company) => company.users)
   @JoinColumn([{ name: 'company_id', referencedColumnName: 'id' }])

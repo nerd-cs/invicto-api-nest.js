@@ -3,17 +3,15 @@ import {
   Column,
   Entity,
   JoinColumn,
-  JoinTable,
-  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Location } from '../location/location.model';
 import { Schedule } from '../schedule/schedule.model';
-import { User } from '../users/users.model';
 import { Zone } from '../zone/zone.model';
 import { AccessGroupScheduleZone } from '../access-group-schedule-zone/access-group-schedule-zone.model';
+import { UserAccessGroup } from '../user-access-group/user-access-group.model';
 
 @Entity('access_group')
 export class AccessGroup {
@@ -34,22 +32,20 @@ export class AccessGroup {
   })
   updatedAt: Date;
 
-  @Column('boolean', { name: 'is_active', default: () => 'true' })
-  isActive: boolean;
+  @Column('integer', { name: 'location_id' })
+  locationId: number;
 
   @ManyToOne(() => Location, (location) => location.accessGroups)
   @JoinColumn([{ name: 'location_id', referencedColumnName: 'id' }])
   location: Location;
 
-  @ManyToMany(() => User, (users) => users.accessGroups)
-  @JoinTable({
-    name: 'user_access_group',
-    joinColumns: [{ name: 'access_group_id', referencedColumnName: 'id' }],
-    inverseJoinColumns: [{ name: 'user_id', referencedColumnName: 'id' }],
-  })
-  users: User[];
+  @OneToMany(
+    () => UserAccessGroup,
+    (userAccessGroup) => userAccessGroup.accessGroup,
+  )
+  users: UserAccessGroup[];
 
-  @OneToMany(() => Zone, (zone) => zone.location)
+  @OneToMany(() => Zone, (zone) => zone.accessGroup)
   zones: Zone[];
 
   @OneToMany(() => Schedule, (schedule) => schedule.accessGroup)

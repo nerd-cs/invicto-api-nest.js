@@ -93,6 +93,7 @@ CREATE TABLE public.users (
     employee_number integer,
     profile_picture bytea,
     job_title character varying,
+	department varchar NULL,
     address character varying,
     city character varying,
     country character varying,
@@ -101,13 +102,20 @@ CREATE TABLE public.users (
     company_id int not null,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
+	updated_by int NULL,
     constraint fk_user_company_id
     foreign key(company_id)
     references company(id)
     on delete no action
-    on update no action
+    on update no action,
+	CONSTRAINT fk_users_users
+	FOREIGN KEY(updated_by)
+	REFERENCES users(id)
+	ON DELETE NO ACTION
+	ON UPDATE NO ACTION
 );
 create index fk_user_company_id_idx on users(company_id asc);
+CREATE INDEX fk_users_users_idx ON users(updated_by ASC);
 
 --
 -- Name: users_id_seq; Type: SEQUENCE; Schema: public;
@@ -222,7 +230,6 @@ create table access_group (
 	name varchar not null,
 	description varchar null,
 	updated_at timestamp with time zone DEFAULT now() NOT NULL,
-	is_active boolean not null default true,
 	location_id int not null,
 	primary key(id),
 	constraint fk_access_group_location
@@ -236,6 +243,7 @@ create index fk_access_group_location_idx on access_group(location_id asc);
 create table user_access_group (
 	user_id int not null,
 	access_group_id int not null,
+	is_active boolean NOT NULL DEFAULT TRUE,
 	primary key(user_id, access_group_id),
 	constraint fk_user_access_group_user
 		foreign key (user_id)

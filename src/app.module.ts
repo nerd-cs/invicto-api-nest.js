@@ -22,6 +22,7 @@ import { ControllerModule } from './controller/controller.module';
 import { MailModule } from './mail/mail.module';
 import { TokenModule } from './token/token.module';
 import { AccountModule } from './account/account.module';
+import { UserAccessGroupModule } from './user-access-group/user-access-group.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { AccountModule } from './account/account.module';
     MailModule,
     TokenModule,
     AccountModule,
+    UserAccessGroupModule,
   ],
   controllers: [AuthController, UsersController, AppController],
   providers: [],

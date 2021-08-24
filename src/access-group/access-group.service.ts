@@ -6,6 +6,7 @@ import { EntityNotFoundException } from '../exception/entity-not-found.exception
 import { LocationService } from '../location/location.service';
 import { PaginationRequestDto } from '../pagination/pagination-request.dto';
 import { ScheduleService } from '../schedule/schedule.service';
+import { User } from '../users/users.model';
 import { ZoneService } from '../zone/zone.service';
 import { AccessGroup } from './access-group.model';
 import { CreateAccessGroupDto } from './dto/create-access-group.dto';
@@ -161,5 +162,20 @@ export class AccessGroupService {
 
   async findByName(name: string) {
     return await this.accessGroupRepository.findOne({ where: { name: name } });
+  }
+
+  async getAllForUser(user: User) {
+    return await this.accessGroupRepository
+      .createQueryBuilder('accessGroup')
+      .select(
+        'array_to_json(array_agg(json_build_object(\'id\', "accessGroup".id, \'name\', "accessGroup".name))) as "accessGroups"',
+      )
+      .addSelect('location.id as "locationId"')
+      .addSelect('location.name as "locationName"')
+      .leftJoin('accessGroup.location', 'location')
+      .leftJoin('accessGroup.users', 'users')
+      .where('users.userId = :userId', { userId: user.id })
+      .groupBy('location.id')
+      .execute();
   }
 }

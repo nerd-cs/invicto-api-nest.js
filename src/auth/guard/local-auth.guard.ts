@@ -7,6 +7,7 @@ import {
 import { EntityNotFoundException } from '../../exception/entity-not-found.exception';
 import { BadCredentialsException } from '../../exception/bad-credentials.exception';
 import { PendingInvitationException } from '../../exception/pending-invitation.exception';
+import { DisabledAccountException } from '../../exception/disabled-account.exception';
 
 @Injectable()
 export class LocalAuthGuard extends AuthGuard('local') {
@@ -17,7 +18,10 @@ export class LocalAuthGuard extends AuthGuard('local') {
         err instanceof BadCredentialsException
       ) {
         throw new UnauthorizedException('Invalid email or password');
-      } else if (err instanceof PendingInvitationException) {
+      } else if (
+        err instanceof PendingInvitationException ||
+        err instanceof DisabledAccountException
+      ) {
         throw new UnauthorizedException(err.message);
       } else {
         throw err;
