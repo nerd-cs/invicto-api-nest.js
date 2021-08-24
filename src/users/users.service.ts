@@ -182,6 +182,7 @@ export class UsersService {
 
     return {
       id: user.id,
+      profilePicture: this.prepareProfilePicture(user.profilePicture),
       fullName: user.fullName,
       company: user.company.name,
       roles: sanitized.roles,
@@ -590,7 +591,9 @@ export class UsersService {
       user.email = dto.email;
     }
 
-    if (dto.deletePhoto) {
+    if (dto.profilePicture) {
+      user.profilePicture = this.preparePicture(dto.profilePicture);
+    } else if (dto.profilePicture === null) {
       user.profilePicture = null;
     }
 
@@ -605,6 +608,10 @@ export class UsersService {
     user.department = dto.department || user.department;
 
     return this.sanitizeUserInfo(await this.updateUser(user));
+  }
+
+  preparePicture(picture: string) {
+    return Buffer.from(picture.replace(BASE_64_PREFIX, ''), 'base64');
   }
 
   async getUserAccessGroups(userId: number, admin: Express.User) {

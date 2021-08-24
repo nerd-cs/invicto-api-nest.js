@@ -2,7 +2,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 import { Transform, Type } from 'class-transformer';
 import {
-  IsBoolean,
   IsEmail,
   IsEnum,
   IsNotEmpty,
@@ -29,10 +28,9 @@ export class UpdateUserDto {
   @ApiModelProperty()
   readonly id: number;
 
-  @IsBoolean()
   @ValidateIf(
     (dto) =>
-      dto.deletePhoto ||
+      dto.profilePicture ||
       (!dto.fullName &&
         !dto.status &&
         !dto.role &&
@@ -42,14 +40,15 @@ export class UpdateUserDto {
         !dto.email),
   )
   @ApiModelProperty({ required: false })
-  readonly deletePhoto: boolean;
+  readonly profilePicture: string | null;
 
   @IsString()
   @Transform(({ value }) => value?.trim())
   @ValidateIf(
     (dto) =>
       dto.fullName ||
-      (!dto.deletePhoto &&
+      (!dto.profilePicture &&
+        dto.profilePicture !== null &&
         !dto.status &&
         !dto.role &&
         !dto.phoneNumber &&
@@ -65,7 +64,8 @@ export class UpdateUserDto {
     (dto) =>
       dto.email ||
       (!dto.fullName &&
-        !dto.deletePhoto &&
+        !dto.profilePicture &&
+        dto.profilePicture !== null &&
         !dto.status &&
         !dto.role &&
         !dto.phoneNumber &&
@@ -80,7 +80,8 @@ export class UpdateUserDto {
     (dto) =>
       dto.status ||
       (!dto.fullName &&
-        !dto.deletePhoto &&
+        !dto.profilePicture &&
+        dto.profilePicture !== null &&
         !dto.role &&
         !dto.phoneNumber &&
         !dto.employeeNumber &&
@@ -100,7 +101,8 @@ export class UpdateUserDto {
       dto.role ||
       (!dto.fullName &&
         !dto.status &&
-        !dto.deletePhoto &&
+        !dto.profilePicture &&
+        dto.profilePicture !== null &&
         !dto.phoneNumber &&
         !dto.employeeNumber &&
         !dto.department &&
@@ -120,7 +122,8 @@ export class UpdateUserDto {
       (!dto.fullName &&
         !dto.status &&
         !dto.role &&
-        !dto.deletePhoto &&
+        !dto.profilePicture &&
+        dto.profilePicture !== null &&
         !dto.employeeNumber &&
         !dto.department &&
         !dto.email),
@@ -138,7 +141,8 @@ export class UpdateUserDto {
         !dto.status &&
         !dto.role &&
         !dto.phoneNumber &&
-        !dto.deletePhoto &&
+        !dto.profilePicture &&
+        dto.profilePicture !== null &&
         !dto.department &&
         !dto.email),
   )
@@ -155,7 +159,8 @@ export class UpdateUserDto {
         !dto.role &&
         !dto.phoneNumber &&
         !dto.employeeNumber &&
-        !dto.deletePhoto &&
+        !dto.profilePicture &&
+        dto.profilePicture !== null &&
         !dto.email),
   )
   @ApiModelProperty({ required: false })
