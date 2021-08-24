@@ -39,6 +39,8 @@ import { isPositive } from 'class-validator';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { UserPaginationRequestDto } from '../pagination/user-pagination-request.dto';
 import { CreateCollaboratorDto } from './dto/create-collaborator.dto';
+import { ChangeUserStatusDto } from './dto/change-user-status.dto';
+import { UpdateUserDto } from './dto/update-user-dto';
 
 @Controller('users')
 @UseInterceptors(EntityAlreadyExistsInterceptor, InvalidEntityInterceptor)
@@ -86,6 +88,30 @@ export class UsersController {
     return this.userService.getUsersPage(request.user, paginationDto);
   }
 
+  @ApiOperation({
+    summary: 'Get info about selected user',
+  })
+  @ApiOkResponse({ description: 'Successfully retrieved' })
+  @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
+  @ApiUnauthorizedResponse({ description: 'User is not authorized' })
+  @ApiForbiddenResponse({
+    description: "User doesn't have permissions to access this resource",
+  })
+  @ApiCookieAuth()
+  @UseGuards(RolesGuard)
+  @Roles(TypeRole.ADMIN)
+  @Get('/:userId')
+  getUserInfo(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Req() request: Request,
+  ) {
+    if (!isPositive(userId)) {
+      throw new BadRequestException('userId must be a positive number');
+    }
+
+    return this.userService.getUserInfo(userId, request.user);
+  }
+
   @Post()
   @UseGuards(RolesGuard)
   @Roles(TypeRole.ADMIN)
@@ -100,6 +126,21 @@ export class UsersController {
   })
   createUser(@Body() userDto: CreateUserDto, @Req() request: Request) {
     return this.userService.createUser(userDto, request.user);
+  }
+
+  @Put()
+  @UseGuards(RolesGuard)
+  @Roles(TypeRole.ADMIN)
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'Update the existing user' })
+  @ApiOkResponse({ type: User, description: 'Successfully updated' })
+  @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
+  @ApiUnauthorizedResponse({ description: 'User is unauthorized' })
+  @ApiForbiddenResponse({
+    description: "User doesn't have permissions to access this resource",
+  })
+  updateUser(@Body() userDto: UpdateUserDto, @Req() request: Request) {
+    return this.userService.updateUserInfo(userDto, request.user);
   }
 
   @Post('/collaborator')
@@ -136,6 +177,10 @@ export class UsersController {
   @ApiOperation({ summary: 'Invite user' })
   @ApiOkResponse({ type: User, description: 'Successfully invited' })
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
+  @ApiUnauthorizedResponse({ description: 'User is unauthorized' })
+  @ApiForbiddenResponse({
+    description: "User doesn't have permissions to access this resource",
+  })
   @ApiParam({ name: 'userId', required: true })
   inviteUser(@Param('userId', ParseIntPipe) userId: number) {
     if (!isPositive(userId)) {
@@ -143,6 +188,30 @@ export class UsersController {
     }
 
     return this.userService.inviteUser(userId);
+  }
+
+  @Put('/:userId/status')
+  @UseGuards(RolesGuard)
+  @Roles(TypeRole.ADMIN)
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'Archive or deactivate user' })
+  @ApiOkResponse({ type: User, description: 'Successfully performed' })
+  @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
+  @ApiUnauthorizedResponse({ description: 'User is unauthorized' })
+  @ApiForbiddenResponse({
+    description: "User doesn't have permissions to access this resource",
+  })
+  @ApiParam({ name: 'userId', required: true })
+  changeUserStatus(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Req() request: Request,
+    @Body() dto: ChangeUserStatusDto,
+  ) {
+    if (!isPositive(userId)) {
+      throw new BadRequestException('userId must be a positive number');
+    }
+
+    return this.userService.changeUserStatus(userId, request.user, dto);
   }
 
   @Put('/confirm')

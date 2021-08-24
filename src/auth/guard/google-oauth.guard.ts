@@ -5,6 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { DisabledAccountException } from '../../exception/disabled-account.exception';
 import { EntityNotFoundException } from '../../exception/entity-not-found.exception';
 
 @Injectable()
@@ -13,6 +14,10 @@ export class GoogleOauthGuard extends AuthGuard('google') {
     if (err) {
       if (err instanceof EntityNotFoundException) {
         throw new UnauthorizedException('Associated account does not exist');
+      }
+
+      if (err instanceof DisabledAccountException) {
+        throw new UnauthorizedException(err.message);
       }
 
       throw new HttpException(err, err['status'] || 500);

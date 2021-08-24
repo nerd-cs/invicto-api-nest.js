@@ -5,6 +5,7 @@ import { BadCredentialsException } from '../exception/bad-credentials.exception'
 import { HttpService } from '@nestjs/axios';
 import { TypeUserStatus } from '../users/users.model';
 import { PendingInvitationException } from '../exception/pending-invitation.exception';
+import { DisabledAccountException } from '../exception/disabled-account.exception';
 
 @Injectable()
 export class AuthService {
@@ -15,11 +16,19 @@ export class AuthService {
 
   async validateUser(emailAddress: string, pwd: string) {
     const user = await this.userService.getUserByEmail(emailAddress);
-    const passwordCorrect = await bcrypt.compare(pwd, user.password || '');
 
     if (user.status === TypeUserStatus.PENDING) {
       throw new PendingInvitationException();
     }
+
+    if (
+      user.status === TypeUserStatus.INACTIVE ||
+      user.status === TypeUserStatus.ARCHIVED
+    ) {
+      throw new DisabledAccountException();
+    }
+
+    const passwordCorrect = await bcrypt.compare(pwd, user.password || '');
 
     if (!passwordCorrect) {
       throw new BadCredentialsException();
@@ -30,6 +39,13 @@ export class AuthService {
 
   async validateOauthUser(emailAddress: string) {
     const user = await this.userService.getUserByEmail(emailAddress);
+
+    if (
+      user.status === TypeUserStatus.INACTIVE ||
+      user.status === TypeUserStatus.ARCHIVED
+    ) {
+      throw new DisabledAccountException();
+    }
 
     return this.userService.sanitizeUserInfo(user);
   }

@@ -8,6 +8,7 @@ import { AccessGroupModule } from '../access-group/access-group.module';
 import { CardModule } from '../card/card.module';
 import { MailModule } from '../mail/mail.module';
 import { TokenModule } from '../token/token.module';
+import { LocationModule } from '../location/location.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { TokenModule } from '../token/token.module';
     CardModule,
     MailModule,
     TokenModule,
+    LocationModule,
   ],
   providers: [UsersService],
   exports: [UsersService],
