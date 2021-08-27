@@ -24,18 +24,18 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { isPositive } from 'class-validator';
-import { Roles } from '../auth/decorator/roles-auth.decorator';
-import { RolesGuard } from '../auth/guard/roles.guard';
+import { Permissions } from '../auth/decorator/permissions-auth.decorator';
+import { PermissionsGuard } from '../auth/guard/permissions.guard';
 import { InvalidEntityInterceptor } from '../interceptor/invalid-entity.interceptor';
 import { PaginationRequestDto } from '../pagination/pagination-request.dto';
-import { TypeRole } from '../roles/roles.model';
+import { TypePermission } from '../permission/permission.model';
 import { ControllerService } from './controller.service';
 import { UpdateControllerDto } from './dto/update-controller.dto';
 
 @ApiCookieAuth()
 @ApiTags('controller')
 @UseInterceptors(InvalidEntityInterceptor)
-@UseGuards(RolesGuard)
+@UseGuards(PermissionsGuard)
 @Controller('controller')
 export class ControllerController {
   constructor(private readonly controllerService: ControllerService) {}
@@ -49,7 +49,7 @@ export class ControllerController {
   })
   @ApiQuery({ name: 'page' })
   @ApiQuery({ name: 'limit' })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.ALL_ACCESS)
   @Get('/list')
   getSchedulesPage(@Query() paginationDto: PaginationRequestDto) {
     return this.controllerService.getControllerPage(paginationDto);
@@ -62,7 +62,7 @@ export class ControllerController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.ALL_ACCESS)
   @Put()
   updateController(@Body() updateControllerDto: UpdateControllerDto) {
     return this.controllerService.updateController(updateControllerDto);
@@ -76,7 +76,7 @@ export class ControllerController {
     description: "User doesn't have permissions to access this resource",
   })
   @ApiParam({ name: 'controllerId' })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.ALL_ACCESS)
   @Put('/:controllerId/test')
   testController(@Param('controllerId', ParseIntPipe) controllerId: number) {
     if (!isPositive(controllerId)) {

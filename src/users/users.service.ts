@@ -3,7 +3,11 @@ import { TypeUserStatus, User } from './users.model';
 import { EntityNotFoundException } from '../exception/entity-not-found.exception';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Not, Repository } from 'typeorm';
-import { CreateUserDto } from './dto/create-user.dto';
+import {
+  CreateUserDto,
+  TypeTierAdminOption,
+  TypeUserRole,
+} from './dto/create-user.dto';
 import { RolesService } from '../roles/roles.service';
 import { EntityAlreadyExistsException } from '../exception/entity-already-exists.exception';
 import { AccessGroupService } from 'src/access-group/access-group.service';
@@ -17,7 +21,7 @@ import { InvalidInvitationException } from '../exception/invalid-invitation.exce
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { PendingInvitationException } from '../exception/pending-invitation.exception';
 import { UserPaginationRequestDto } from '../pagination/user-pagination-request.dto';
-import { TypeRole } from '../roles/roles.model';
+import { Role, TypeRole } from '../roles/roles.model';
 import { CreateCollaboratorDto } from './dto/create-collaborator.dto';
 import { CardService } from '../card/card.service';
 import { UserAccessGroup } from '../user-access-group/user-access-group.model';
@@ -34,6 +38,11 @@ import { CreateUserCardsDto } from './dto/create-user-cards.dto';
 
 export const SALT_LENGTH = 10;
 export const BASE_64_PREFIX = 'data:image/jpg;base64,';
+export const TIER_ADMIN_OPTIONS = [
+  TypeRole.SECURITY,
+  TypeRole.USER_MANAGER,
+  TypeRole.FRONT_DESK,
+];
 @Injectable()
 export class UsersService {
   constructor(
@@ -48,7 +57,11 @@ export class UsersService {
   ) {}
 
   async getUserByEmail(email: string): Promise<User> {
-    const user = await this.findByEmail(email, ['roles', 'company']);
+    const user = await this.findByEmail(email, [
+      'roles',
+      'company',
+      'roles.permissions',
+    ]);
 
     if (!user) {
       throw new EntityNotFoundException({ email: email });
@@ -87,7 +100,9 @@ export class UsersService {
           offset,
           paginationDto.limit,
           user,
-          paginationDto.role,
+          paginationDto.role === 'TIER_ADMIN'
+            ? TIER_ADMIN_OPTIONS
+            : [TypeRole[paginationDto.role]],
         )
       : this.getUsersPageWithAccessGroups(offset, paginationDto.limit, user);
   }
@@ -96,15 +111,17 @@ export class UsersService {
     offset: number,
     limit: number,
     user: Express.User,
-    role: TypeRole,
+    roles: TypeRole[],
   ) {
     const page = await this.userRepository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.company', 'company')
       .leftJoinAndSelect('user.roles', 'roles')
+      .leftJoinAndSelect('roles.permissions', 'permissions')
       .where('company.id = :companyId', { companyId: user['company']['id'] })
-      .andWhere('roles.value = :role', { role })
+      .andWhere('roles.value IN (:...roles)', { roles })
       .andWhere('user.status != :status', { status: TypeUserStatus.ARCHIVED })
+      .orderBy('user.fullName', 'ASC')
       .skip(offset)
       .take(limit)
       .getMany();
@@ -112,19 +129,42 @@ export class UsersService {
     const result = [];
 
     page.forEach((user) => {
+      const rawRole = user.roles[0]?.value;
       const sanitized = this.sanitizeUserInfo(user);
-      const { company, ...rest } = sanitized;
+      const { company, roles, ...rest } = sanitized;
 
       rest['lastActivity'] = new Date();
 
-      if (rest.roles.includes(TypeRole.ADMIN)) {
-        rest['permissions'] = 'All permissions';
+      if (roles.includes(TypeRole.ADMIN)) {
+        rest['permissions'] = this.preparePermissionsOutput(rawRole);
+      } else if (roles.includes(TypeUserRole.TIER_ADMIN)) {
+        rest['permissions'] = this.preparePermissionsOutput(rawRole);
       }
 
       result.push(rest);
     });
 
     return result;
+  }
+
+  private preparePermissionsOutput(role: TypeRole) {
+    switch (role) {
+      case TypeRole.ADMIN: {
+        return 'All permissions';
+      }
+
+      case TypeRole.FRONT_DESK: {
+        return 'Front Desk';
+      }
+
+      case TypeRole.SECURITY: {
+        return 'Security';
+      }
+
+      case TypeRole.USER_MANAGER: {
+        return 'User Manager';
+      }
+    }
   }
 
   private async getUsersPageWithAccessGroups(
@@ -264,7 +304,9 @@ export class UsersService {
 
     await this.throwIfEmailAlreadyTaken(userDto.email);
 
-    const roleEntity = await this.roleService.getRoleByName(role);
+    const roleName = this.getRoleName(userDto.role, userDto.roleOption);
+
+    const roleEntity = await this.roleService.getRoleByName(roleName);
 
     if (roleEntity) {
       restUserAttributes['roles'] = [roleEntity];
@@ -284,13 +326,24 @@ export class UsersService {
 
     const { id, email, fullName, phoneNumber, allowSso } = savedUser;
 
-    const roles = savedUser.roles.map((role) => role.value);
+    const roles = this.prepareRolesOutput(savedUser.roles);
 
     if (instantlyInvite) {
       this.sendInvitation(savedUser);
     }
 
     return { id, email, fullName, phoneNumber, allowSso, roles };
+  }
+
+  private getRoleName(
+    role: TypeUserRole,
+    roleOption: TypeTierAdminOption = TypeTierAdminOption.FRONT_DESK,
+  ) {
+    if (role === TypeUserRole.TIER_ADMIN) {
+      return TypeRole[roleOption];
+    }
+
+    return TypeRole[role];
   }
 
   private async throwIfEmailAlreadyTaken(email: string) {
@@ -355,7 +408,7 @@ export class UsersService {
       twoStepAuth,
     } = user;
 
-    const plainRoles = roles?.map((role) => role.value);
+    const plainRoles = this.prepareRolesOutput(roles);
 
     const picture = this.prepareProfilePicture(profilePicture);
 
@@ -372,10 +425,36 @@ export class UsersService {
     };
   }
 
+  private prepareRolesOutput(roles: Role[]) {
+    const plainRoles = roles
+      ?.map((role) => role.value)
+      .filter((role) => !TIER_ADMIN_OPTIONS.includes(role))
+      .map((role) => TypeUserRole[role]);
+
+    if (plainRoles?.length < roles?.length) {
+      plainRoles.push(TypeUserRole.TIER_ADMIN);
+    }
+
+    return plainRoles;
+  }
+
   prepareProfilePicture(profilePicture: Buffer) {
     return profilePicture
       ? `${BASE_64_PREFIX}${profilePicture.toString('base64')}`
       : null;
+  }
+
+  sanitizeUserInfoAndIncludePermissions(user: User) {
+    const permissions = user?.roles
+      .map((role) => role.permissions)
+      .reduce((res, permissions) => res.concat(permissions))
+      .map((permission) => permission.permission);
+
+    const sanitized = this.sanitizeUserInfo(user);
+
+    sanitized['permissions'] = permissions;
+
+    return sanitized;
   }
 
   async inviteUser(userId: number) {
@@ -400,11 +479,13 @@ export class UsersService {
     admin: Express.User,
     originHeader: string,
   ) {
-    const { role, ...rest } = dto;
+    const { role, roleOption, ...rest } = dto;
 
     await this.throwIfEmailAlreadyTaken(dto.email);
 
-    const roleEntity = await this.roleService.getRoleByName(role);
+    const roleEntity = await this.roleService.getRoleByName(
+      this.getRoleName(role, roleOption),
+    );
 
     if (roleEntity) {
       rest['roles'] = [roleEntity];
@@ -585,7 +666,7 @@ export class UsersService {
   }
 
   async updateUserInfo(dto: UpdateUserDto, admin: Express.User) {
-    const user = await this.getById(dto.id, undefined, {
+    const user = await this.getById(dto.id, ['roles'], {
       company: admin['company'],
     });
 
@@ -601,7 +682,27 @@ export class UsersService {
     }
 
     if (dto.role) {
-      user.roles = [await this.roleService.getRoleByName(dto.role)];
+      user.roles = [
+        await this.roleService.getRoleByName(
+          this.getRoleName(dto.role, dto.roleOption),
+        ),
+      ];
+    } else if (dto.roleOption) {
+      if (
+        user.roles
+          .map((role) => role.value)
+          .some((role) => TIER_ADMIN_OPTIONS.includes(role))
+      ) {
+        user.roles = [
+          await this.roleService.getRoleByName(
+            this.getRoleName(TypeUserRole.TIER_ADMIN, dto.roleOption),
+          ),
+        ];
+      } else {
+        throw new ConstraintViolationException(
+          'User must have TIER_ADMIN role',
+        );
+      }
     }
 
     user.fullName = dto.fullName || user.fullName;

@@ -28,17 +28,17 @@ import {
   ApiQuery,
   ApiParam,
 } from '@nestjs/swagger';
-import { Roles } from '../auth/decorator/roles-auth.decorator';
-import { TypeRole } from '../roles/roles.model';
-import { RolesGuard } from '../auth/guard/roles.guard';
+import { Permissions } from '../auth/decorator/permissions-auth.decorator';
+import { PermissionsGuard } from '../auth/guard/permissions.guard';
 import { InvalidEntityInterceptor } from '../interceptor/invalid-entity.interceptor';
 import { PaginationRequestDto } from '../pagination/pagination-request.dto';
 import { isPositive } from 'class-validator';
+import { TypePermission } from '../permission/permission.model';
 
 @ApiCookieAuth()
 @ApiTags('holiday')
 @UseInterceptors(InvalidEntityInterceptor)
-@UseGuards(RolesGuard)
+@UseGuards(PermissionsGuard)
 @Controller('holiday')
 export class HolidayController {
   constructor(private readonly holidayService: HolidayService) {}
@@ -50,7 +50,7 @@ export class HolidayController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.ALL_ACCESS)
   @HttpCode(HttpStatus.OK)
   @Post()
   createHoliday(@Body() createHolidayDto: CreateHolidayDto) {
@@ -64,7 +64,7 @@ export class HolidayController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.ALL_ACCESS)
   @Get()
   getAllHolidays() {
     return this.holidayService.getAllHolidays();
@@ -79,7 +79,7 @@ export class HolidayController {
   })
   @ApiQuery({ name: 'page' })
   @ApiQuery({ name: 'limit' })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.ALL_ACCESS)
   @Get('/list')
   getHolidaysPage(@Query() paginationDto: PaginationRequestDto) {
     return this.holidayService.getHolidaysPage(paginationDto);
@@ -92,7 +92,7 @@ export class HolidayController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.ALL_ACCESS)
   @Put()
   updateHoliday(@Body() updateHolidayDto: UpdateHolidayDto) {
     return this.holidayService.updateHoliday(updateHolidayDto);
@@ -106,7 +106,7 @@ export class HolidayController {
     description: "User doesn't have permissions to access this resource",
   })
   @ApiParam({ name: 'holidayId', required: true })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.ALL_ACCESS)
   @Delete(':holidayId')
   deleteHoliday(@Param('holidayId', ParseIntPipe) holidayId: number) {
     if (!isPositive(holidayId)) {

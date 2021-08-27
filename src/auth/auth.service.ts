@@ -34,7 +34,7 @@ export class AuthService {
       throw new BadCredentialsException();
     }
 
-    return this.userService.sanitizeUserInfo(user);
+    return this.userService.sanitizeUserInfoAndIncludePermissions(user);
   }
 
   async validateOauthUser(emailAddress: string) {
@@ -47,7 +47,7 @@ export class AuthService {
       throw new DisabledAccountException();
     }
 
-    return this.userService.sanitizeUserInfo(user);
+    return this.userService.sanitizeUserInfoAndIncludePermissions(user);
   }
 
   async processGoogleData(userData: any) {

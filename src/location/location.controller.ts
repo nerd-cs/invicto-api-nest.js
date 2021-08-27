@@ -8,20 +8,20 @@ import {
   ApiForbiddenResponse,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { Roles } from '../auth/decorator/roles-auth.decorator';
-import { RolesGuard } from '../auth/guard/roles.guard';
-import { TypeRole } from '../roles/roles.model';
+import { Permissions } from '../auth/decorator/permissions-auth.decorator';
+import { PermissionsGuard } from '../auth/guard/permissions.guard';
+import { TypePermission } from '../permission/permission.model';
 import { LocationService } from './location.service';
 
 @ApiTags('location')
 @ApiCookieAuth()
-@UseGuards(RolesGuard)
+@UseGuards(PermissionsGuard)
 @Controller('location')
 export class LocationController {
   constructor(private readonly locationService: LocationService) {}
 
   @Get()
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.USER_MANAGEMENT)
   @ApiOperation({ summary: 'Get all locations for assigned company' })
   @ApiOkResponse({ description: 'Successfully retrieved' })
   @ApiUnauthorizedResponse({ description: 'User is not authorized' })

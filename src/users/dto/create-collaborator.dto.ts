@@ -1,8 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 import { Transform } from 'class-transformer';
-import { IsEmail, IsNotEmpty, IsString, IsEnum } from 'class-validator';
-import { TypeRole } from '../../roles/roles.model';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  IsEnum,
+  IsOptional,
+} from 'class-validator';
+import { TypeTierAdminOption, TypeUserRole } from './create-user.dto';
 
 export class CreateCollaboratorDto {
   @IsEmail()
@@ -17,7 +23,16 @@ export class CreateCollaboratorDto {
   readonly fullName: string;
 
   @IsNotEmpty()
-  @IsEnum(TypeRole)
-  @ApiProperty({ enumName: 'TypeRole', enum: TypeRole })
-  readonly role: TypeRole;
+  @IsEnum(TypeUserRole)
+  @ApiProperty({ enumName: 'TypeUserRole', enum: TypeUserRole })
+  readonly role: TypeUserRole;
+
+  @IsOptional()
+  @IsEnum(TypeTierAdminOption)
+  @ApiProperty({
+    enumName: 'TypeTierAdminOption',
+    enum: TypeTierAdminOption,
+    required: false,
+  })
+  readonly roleOption: TypeTierAdminOption;
 }

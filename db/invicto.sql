@@ -24,8 +24,10 @@ SET search_path TO public;
 CREATE TYPE public.type_role AS ENUM (
     'GUEST',
     'MEMBER',
-    'TIER_ADMIN',
-    'ADMIN'
+    'ADMIN',
+	'SECURITY',
+	'USER_MANAGER',
+	'FRONT_DESK'
 );
 
 
@@ -63,6 +65,19 @@ CREATE SEQUENCE public.role_id_seq
 
 ALTER SEQUENCE public.role_id_seq OWNED BY public.role.id;
 
+CREATE TYPE TYPE_PERMISSION as ENUM ('BUILDING_ACCESS', 'ACCOUNT_MANAGEMENT', 'CARD_REQUEST', 'READ_ACTIVITY', 'USER_MANAGEMENT', 'KEY_MANAGEMENT', 'ALL_ACCESS');
+
+CREATE TABLE role_permission (
+    role_id int NOT NULL,
+    permission TYPE_PERMISSION NOT NULL,
+    PRIMARY KEY (role_id, permission),
+    CONSTRAINT fk_role_permission_permission
+	FOREIGN KEY (role_id)
+	REFERENCES role(id)
+	ON DELETE NO ACTION
+	ON UPDATE NO ACTION
+);
+CREATE INDEX fk_role_permission_permission_idx ON role_permission(role_id ASC);
 
 --
 -- Name: user_role; Type: TABLE; Schema: public;
@@ -87,7 +102,7 @@ create type TYPE_USER_STATUS as enum ('PENDING',  'INCOMPLETE', 'ACTIVE', 'INACT
 CREATE TABLE public.users (
     id integer NOT NULL,
     full_name character varying NOT NULL,
-    phone_number character varying NOT NULL,
+    phone_number character varying NULL,
     password character varying,
     email character varying NOT NULL,
     employee_number integer,
@@ -103,6 +118,8 @@ CREATE TABLE public.users (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
 	updated_by int NULL,
+	primary key (id),
+	unique (email),
     constraint fk_user_company_id
     foreign key(company_id)
     references company(id)
@@ -149,23 +166,6 @@ ALTER TABLE ONLY public.role ALTER COLUMN id SET DEFAULT nextval('public.role_id
 --
 
 ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
-
-
---
--- Name: users PK_a3ffb1c0c8416b9fc6f907b7433; Type: CONSTRAINT; Schema: public;
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT "PK_a3ffb1c0c8416b9fc6f907b7433" PRIMARY KEY (id);
-
-
---
--- Name: users UQ_97672ac88f789774dd47f7c8be3; Type: CONSTRAINT; Schema: public;
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT "UQ_97672ac88f789774dd47f7c8be3" UNIQUE (email);
-
 
 --
 -- Name: role role_pkey; Type: CONSTRAINT; Schema: public;

@@ -26,11 +26,11 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { isPositive } from 'class-validator';
-import { Roles } from '../auth/decorator/roles-auth.decorator';
-import { RolesGuard } from '../auth/guard/roles.guard';
+import { Permissions } from '../auth/decorator/permissions-auth.decorator';
+import { PermissionsGuard } from '../auth/guard/permissions.guard';
 import { InvalidEntityInterceptor } from '../interceptor/invalid-entity.interceptor';
 import { PaginationRequestDto } from '../pagination/pagination-request.dto';
-import { TypeRole } from '../roles/roles.model';
+import { TypePermission } from '../permission/permission.model';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { ScheduleService } from './schedule.service';
@@ -38,7 +38,7 @@ import { ScheduleService } from './schedule.service';
 @ApiCookieAuth()
 @ApiTags('schedule')
 @UseInterceptors(InvalidEntityInterceptor)
-@UseGuards(RolesGuard)
+@UseGuards(PermissionsGuard)
 @Controller('schedule')
 export class ScheduleController {
   constructor(private readonly scheduleService: ScheduleService) {}
@@ -50,7 +50,7 @@ export class ScheduleController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.ALL_ACCESS)
   @HttpCode(HttpStatus.OK)
   @Post()
   createSchedule(@Body() createScheduleDto: CreateScheduleDto) {
@@ -64,7 +64,7 @@ export class ScheduleController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.ALL_ACCESS)
   @Get()
   getSchedulesList() {
     return this.scheduleService.getSchedulesList();
@@ -79,7 +79,7 @@ export class ScheduleController {
   })
   @ApiQuery({ name: 'page' })
   @ApiQuery({ name: 'limit' })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.ALL_ACCESS)
   @Get('/list')
   getSchedulesPage(@Query() paginationDto: PaginationRequestDto) {
     return this.scheduleService.getSchedulesPage(paginationDto);
@@ -93,7 +93,7 @@ export class ScheduleController {
     description: "User doesn't have permissions to access this resource",
   })
   @ApiParam({ name: 'scheduleId', required: true })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.ALL_ACCESS)
   @Get(':scheduleId')
   getScheduleDescription(
     @Param('scheduleId', ParseIntPipe) scheduleId: number,
@@ -112,7 +112,7 @@ export class ScheduleController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.ALL_ACCESS)
   @Put()
   updateSchedule(@Body() updateScheduleDto: UpdateScheduleDto) {
     return this.scheduleService.updateSchedule(updateScheduleDto);
@@ -126,7 +126,7 @@ export class ScheduleController {
     description: "User doesn't have permissions to access this resource",
   })
   @ApiParam({ name: 'scheduleId', required: true })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.ALL_ACCESS)
   @Delete(':scheduleId')
   deleteSchedule(@Param('scheduleId', ParseIntPipe) scheduleId: number) {
     if (!isPositive(scheduleId)) {

@@ -27,11 +27,11 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { isPositive } from 'class-validator';
-import { Roles } from '../auth/decorator/roles-auth.decorator';
-import { RolesGuard } from '../auth/guard/roles.guard';
+import { Permissions } from '../auth/decorator/permissions-auth.decorator';
+import { PermissionsGuard } from '../auth/guard/permissions.guard';
 import { InvalidEntityInterceptor } from '../interceptor/invalid-entity.interceptor';
 import { PaginationRequestDto } from '../pagination/pagination-request.dto';
-import { TypeRole } from '../roles/roles.model';
+import { TypePermission } from '../permission/permission.model';
 import { CreateZoneDto } from './dto/create-zone.dto';
 import { UpdateZoneDto } from './dto/update-zone.dto';
 import { ZoneService } from './zone.service';
@@ -39,7 +39,7 @@ import { ZoneService } from './zone.service';
 @ApiCookieAuth()
 @ApiTags('zone')
 @UseInterceptors(InvalidEntityInterceptor)
-@UseGuards(RolesGuard)
+@UseGuards(PermissionsGuard)
 @Controller('zone')
 export class ZoneController {
   constructor(private readonly zoneService: ZoneService) {}
@@ -52,7 +52,7 @@ export class ZoneController {
     description: "User doesn't have permissions to access this resource",
   })
   @ApiQuery({ name: 'locationId' })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.ALL_ACCESS)
   @Get()
   getAllForLocation(@Query('locationId', ParseIntPipe) locationId: number) {
     if (!isPositive(locationId)) {
@@ -71,7 +71,7 @@ export class ZoneController {
   })
   @ApiQuery({ name: 'page' })
   @ApiQuery({ name: 'limit' })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.ALL_ACCESS)
   @Get('/list')
   getZonesPage(@Query() paginationDto: PaginationRequestDto, @Req() request) {
     return this.zoneService.getZonesPage(paginationDto, request.user);
@@ -84,7 +84,7 @@ export class ZoneController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.ALL_ACCESS)
   @HttpCode(HttpStatus.OK)
   @Post()
   createZone(@Body() createZoneDto: CreateZoneDto) {
@@ -98,7 +98,7 @@ export class ZoneController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.ALL_ACCESS)
   @Put()
   updateZone(@Body() updateZoneDto: UpdateZoneDto) {
     return this.zoneService.updateZone(updateZoneDto);
@@ -112,7 +112,7 @@ export class ZoneController {
     description: "User doesn't have permissions to access this resource",
   })
   @ApiParam({ name: 'zoneId', required: true })
-  @Roles(TypeRole.ADMIN)
+  @Permissions(TypePermission.ALL_ACCESS)
   @Delete('/:zoneId')
   deleteZone(@Param('zoneId', ParseIntPipe) zoneId: number) {
     if (!isPositive(zoneId)) {

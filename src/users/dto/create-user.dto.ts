@@ -17,6 +17,17 @@ import { AssignLocationDto } from './assign-location.dto';
 import { Transform, Type } from 'class-transformer';
 import { CreateCardDto } from '../../card/dto/create-card.dto';
 
+export enum TypeUserRole {
+  GUEST = 'GUEST',
+  MEMBER = 'MEMBER',
+  TIER_ADMIN = 'TIER_ADMIN',
+  ADMIN = 'ADMIN',
+}
+export enum TypeTierAdminOption {
+  SECURITY = TypeRole.SECURITY,
+  USER_MANAGER = TypeRole.USER_MANAGER,
+  FRONT_DESK = TypeRole.FRONT_DESK,
+}
 export const PHONE_REGEX = /^\+1\d{10}$/;
 export class CreateUserDto {
   @IsEmail()
@@ -39,9 +50,18 @@ export class CreateUserDto {
   readonly phoneNumber: string;
 
   @IsNotEmpty()
-  @IsEnum(TypeRole)
-  @ApiProperty({ enumName: 'TypeRole', enum: TypeRole })
-  readonly role: TypeRole;
+  @IsEnum(TypeUserRole)
+  @ApiProperty({ enumName: 'TypeUserRole', enum: TypeUserRole })
+  readonly role: TypeUserRole;
+
+  @IsOptional()
+  @IsEnum(TypeTierAdminOption)
+  @ApiProperty({
+    enumName: 'TypeTierAdminOption',
+    enum: TypeTierAdminOption,
+    required: false,
+  })
+  readonly roleOption: TypeTierAdminOption;
 
   @IsBoolean()
   @IsOptional()

@@ -23,6 +23,7 @@ import { MailModule } from './mail/mail.module';
 import { TokenModule } from './token/token.module';
 import { AccountModule } from './account/account.module';
 import { UserAccessGroupModule } from './user-access-group/user-access-group.module';
+import { PermissionModule } from './permission/permission.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { UserAccessGroupModule } from './user-access-group/user-access-group.mod
     TokenModule,
     AccountModule,
     UserAccessGroupModule,
+    PermissionModule,
   ],
   controllers: [AuthController, UsersController, AppController],
   providers: [],

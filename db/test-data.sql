@@ -10,18 +10,45 @@ INSERT INTO company(id, name) VALUES(default, 'Desjardins');
 INSERT INTO role(value)
 SELECT unnest(enum_range(NULL::type_role));
 
+INSERT INTO role_permission
+SELECT id, 'BUILDING_ACCESS'
+FROM role
+WHERE value = 'GUEST';
+
+INSERT INTO role_permission
+SELECT id, 'ALL_ACCESS'
+FROM role
+WHERE value = 'ADMIN';
+
+INSERT INTO role_permission
+SELECT id, UNNEST(ARRAY['BUILDING_ACCESS'::TYPE_PERMISSION, 'ACCOUNT_MANAGEMENT'::TYPE_PERMISSION, 'CARD_REQUEST'::TYPE_PERMISSION])
+FROM role
+WHERE value = 'MEMBER';
+
+INSERT INTO role_permission
+SELECT id, UNNEST(ARRAY['ACCOUNT_MANAGEMENT'::TYPE_PERMISSION, 'READ_ACTIVITY'::TYPE_PERMISSION, 'USER_MANAGEMENT'::TYPE_PERMISSION, 'KEY_MANAGEMENT'::TYPE_PERMISSION])
+FROM role
+WHERE value = 'SECURITY' OR value = 'USER_MANAGER';
+
+INSERT INTO role_permission
+SELECT id, UNNEST(ARRAY['ACCOUNT_MANAGEMENT'::TYPE_PERMISSION, 'READ_ACTIVITY'::TYPE_PERMISSION])
+FROM role
+WHERE value = 'FRONT_DESK';
+
 INSERT INTO users(id,
                   full_name,
                   email,
                   phone_number,
                   password,
-                  company_id)
+                  company_id,
+                  status)
 VALUES (default,
         'John Doe',
         'johndoe@example.com',
         '+15145866598',
         '$2a$05$Z62.QHKSgWQIXjAqAWDLOedgerEXvz0ob5AADEu/3L9LtomloNGV.',
-        CURRVAL(pg_get_serial_sequence('company','id')));
+        CURRVAL(pg_get_serial_sequence('company','id')),
+        'ACTIVE');
 
 INSERT INTO user_role
 SELECT CURRVAL(pg_get_serial_sequence('users','id')), id
@@ -33,13 +60,15 @@ INSERT INTO users(id,
                   email,
                   phone_number,
                   password,
-                  company_id)
+                  company_id,
+                  status)
 VALUES (default,
         'Test',
         'test@test.com',
         '+15145866598',
         '$2y$12$BbwIaaySC0QfrDRMa2u2p.FdqPt9MDV.r1fbQj/qzznmjKfyT.aw.',
-        1);
+        1,
+        'ACTIVE');
 
 INSERT INTO user_role
 SELECT CURRVAL(pg_get_serial_sequence('users','id')), id
