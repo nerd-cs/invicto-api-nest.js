@@ -7,7 +7,6 @@ import { EntityNotFoundException } from '../exception/entity-not-found.exception
 import { HolidayService } from '../holiday/holiday.service';
 import { PaginationRequestDto } from '../pagination/pagination-request.dto';
 import { ScheduleHolidayService } from '../schedule-holiday/schedule-holiday.service';
-import { TIME_CONSTRAINT } from '../timetable/dto/create-timeslot.dto';
 import { CreateTimetableDto } from '../timetable/dto/create-timetable.dto';
 import { UpdateTimetableDto } from '../timetable/dto/update-timetable.dto';
 import { TimetableService } from '../timetable/timetable.service';
@@ -15,7 +14,8 @@ import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { Schedule } from './schedule.model';
 
-export const FakeDate = 'Jan 1, 2021';
+export const FAKE_DATE = 'Jan 1, 2021';
+export const HOURS_REGEX = /(\d{1,2})(:)/;
 @Injectable()
 export class ScheduleService {
   constructor(
@@ -157,7 +157,7 @@ export class ScheduleService {
   }
 
   private prepareTime(time: string) {
-    const date = new Date(`${FakeDate} ${time}`);
+    const date = new Date(`${FAKE_DATE} ${time}`);
 
     const preparedTime = date.toLocaleString([], {
       hour: '2-digit',
@@ -165,7 +165,7 @@ export class ScheduleService {
       hour12: true,
     });
 
-    if (preparedTime.match(TIME_CONSTRAINT)[1].length < 2) {
+    if (preparedTime.match(HOURS_REGEX)[1].length < 2) {
       return `0${preparedTime}`;
     }
 
