@@ -4,7 +4,9 @@ import { Repository } from 'typeorm';
 import { ConstraintViolationException } from '../exception/constraint-violation.exception';
 import { EntityAlreadyExistsException } from '../exception/entity-already-exists.exception';
 import { EntityNotFoundException } from '../exception/entity-not-found.exception';
+import { HolidayTimetableService } from '../holiday-timetable/holiday-timetable.service';
 import { PaginationRequestDto } from '../pagination/pagination-request.dto';
+import { ScheduleHolidayService } from '../schedule-holiday/schedule-holiday.service';
 import { IsBeforeOrEqualConstraint } from '../validation/before-or-equal.constraint';
 import { CreateHolidayDto } from './dto/create-holiday.dto';
 import { UpdateHolidayDto } from './dto/update-holiday.dto';
@@ -16,6 +18,8 @@ export class HolidayService {
     @InjectRepository(Holiday)
     private readonly holidayRepository: Repository<Holiday>,
     private readonly isBeforeOrEqualConstraint: IsBeforeOrEqualConstraint,
+    private readonly scheduleHolidayService: ScheduleHolidayService,
+    private readonly holidayTimetableService: HolidayTimetableService,
   ) {}
 
   async getAllHolidays() {
@@ -88,13 +92,25 @@ export class HolidayService {
   }
 
   async deleteHoliday(holidayId: number) {
-    const holiday = await this.getById(holidayId);
+    const holiday = await this.getById(holidayId, [
+      'schedules',
+      'schedules.timetables',
+    ]);
+
+    await this.holidayTimetableService.removeAll(
+      holiday.schedules
+        .map((schedule) => schedule.timetables)
+        .reduce((prev, next) => prev.concat(next), []),
+    );
+    await this.scheduleHolidayService.removeAll(holiday.schedules);
 
     return await this.holidayRepository.remove(holiday);
   }
 
-  async getById(holidayId: number) {
-    const holiday = await this.holidayRepository.findOne(holidayId);
+  async getById(holidayId: number, relations: string[] = undefined) {
+    const holiday = await this.holidayRepository.findOne(holidayId, {
+      relations: relations,
+    });
 
     if (!holiday) {
       throw new EntityNotFoundException({ holidayId: holidayId });

@@ -24,6 +24,7 @@ import { TokenModule } from './token/token.module';
 import { AccountModule } from './account/account.module';
 import { UserAccessGroupModule } from './user-access-group/user-access-group.module';
 import { PermissionModule } from './permission/permission.module';
+import { HolidayTimetableModule } from './holiday-timetable/holiday-timetable.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { PermissionModule } from './permission/permission.module';
     AccountModule,
     UserAccessGroupModule,
     PermissionModule,
+    HolidayTimetableModule,
   ],
   controllers: [AuthController, UsersController, AppController],
   providers: [],

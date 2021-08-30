@@ -11,6 +11,10 @@ export class AccessGroupScheduleZoneService {
   ) {}
 
   async removeAll(accessGroupScheduleZones: AccessGroupScheduleZone[]) {
+    if (!accessGroupScheduleZones || !accessGroupScheduleZones.length) {
+      return [];
+    }
+
     return await this.accessGroupScheduleZoneRepository.remove(
       accessGroupScheduleZones,
     );

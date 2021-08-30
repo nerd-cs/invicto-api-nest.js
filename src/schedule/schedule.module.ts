@@ -7,6 +7,7 @@ import { HolidayModule } from '../holiday/holiday.module';
 import { TimetableModule } from '../timetable/timetable.module';
 import { ScheduleHolidayModule } from '../schedule-holiday/schedule-holiday.module';
 import { AccessGroupScheduleZoneModule } from '../access-group-schedule-zone/access-group-schedule-zone.module';
+import { HolidayTimetableModule } from '../holiday-timetable/holiday-timetable.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { AccessGroupScheduleZoneModule } from '../access-group-schedule-zone/acc
     TimetableModule,
     ScheduleHolidayModule,
     AccessGroupScheduleZoneModule,
+    HolidayTimetableModule,
   ],
   controllers: [ScheduleController],
   providers: [ScheduleService],

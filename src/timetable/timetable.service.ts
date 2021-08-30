@@ -11,6 +11,10 @@ export class TimetableService {
   ) {}
 
   async removeAll(timetables: Timetable[]) {
+    if (!timetables || !timetables.length) {
+      return [];
+    }
+
     return await this.timetableRepository.remove(timetables);
   }
 }
