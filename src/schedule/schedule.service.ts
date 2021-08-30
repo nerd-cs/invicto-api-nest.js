@@ -1,12 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { AccessGroupScheduleZoneService } from '../access-group-schedule-zone/access-group-schedule-zone.service';
 import { EntityAlreadyExistsException } from '../exception/entity-already-exists.exception';
 import { EntityNotFoundException } from '../exception/entity-not-found.exception';
 import { HolidayService } from '../holiday/holiday.service';
 import { PaginationRequestDto } from '../pagination/pagination-request.dto';
+import { ScheduleHolidayService } from '../schedule-holiday/schedule-holiday.service';
 import { CreateTimetableDto } from '../timetable/dto/create-timetable.dto';
 import { UpdateTimetableDto } from '../timetable/dto/update-timetable.dto';
+import { TimetableService } from '../timetable/timetable.service';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { Schedule } from './schedule.model';
@@ -18,6 +21,9 @@ export class ScheduleService {
     @InjectRepository(Schedule)
     private readonly scheduleRepository: Repository<Schedule>,
     private readonly holidayService: HolidayService,
+    private readonly timetableService: TimetableService,
+    private readonly scheduleHolidayService: ScheduleHolidayService,
+    private readonly accessGroupScheduleZoneService: AccessGroupScheduleZoneService,
   ) {}
 
   async createSchedule(scheduleDto: CreateScheduleDto) {
@@ -110,6 +116,10 @@ export class ScheduleService {
       .leftJoinAndSelect('schedule.timetables', 'timetables')
       .where('schedule.id = :scheduleId', { scheduleId })
       .getOne();
+
+    if (!schedule) {
+      throw new EntityNotFoundException({ scheduleId });
+    }
 
     const { timetables, holidays, ...rest } = schedule;
 
@@ -213,7 +223,17 @@ export class ScheduleService {
   }
 
   async deleteSchedule(scheduleId: number) {
-    const schedule = await this.getById(scheduleId, undefined);
+    const schedule = await this.getById(scheduleId, [
+      'timetables',
+      'holidays',
+      'accessGroupScheduleZones',
+    ]);
+
+    await this.timetableService.removeAll(schedule.timetables);
+    await this.scheduleHolidayService.removeAll(schedule.holidays);
+    await this.accessGroupScheduleZoneService.removeAll(
+      schedule.accessGroupScheduleZones,
+    );
 
     return await this.scheduleRepository.remove(schedule);
   }
