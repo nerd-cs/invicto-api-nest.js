@@ -24,20 +24,28 @@ export class isBeforeStringConstraint implements ValidatorConstraintInterface {
       return true;
     }
 
-    const startDate = new Date(
-      1,
-      1,
-      1,
-      this.prepareHours(startTimeMatchedGroups[1], startTimeMatchedGroups[3]),
-      Number(startTimeMatchedGroups[2]),
+    const startHours = this.prepareHours(
+      startTimeMatchedGroups[1],
+      startTimeMatchedGroups[3],
     );
-    const endDate = new Date(
-      1,
-      1,
-      1,
-      this.prepareHours(endTimeMatchedGroups[1], endTimeMatchedGroups[3]),
-      Number(endTimeMatchedGroups[2]),
+    const startMinutes = Number(startTimeMatchedGroups[2]);
+    const endHours = this.prepareHours(
+      endTimeMatchedGroups[1],
+      endTimeMatchedGroups[3],
     );
+    const endMinutes = Number(endTimeMatchedGroups[2]);
+
+    if (
+      startHours === 0 &&
+      startMinutes === 0 &&
+      endHours === 0 &&
+      endMinutes === 0
+    ) {
+      return true;
+    }
+
+    const startDate = new Date(1, 1, 1, startHours, startMinutes);
+    const endDate = new Date(1, 1, 1, endHours, endMinutes);
 
     return startDate < endDate;
   }
