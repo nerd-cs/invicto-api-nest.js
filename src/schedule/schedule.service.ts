@@ -7,6 +7,7 @@ import { EntityNotFoundException } from '../exception/entity-not-found.exception
 import { HolidayService } from '../holiday/holiday.service';
 import { PaginationRequestDto } from '../pagination/pagination-request.dto';
 import { ScheduleHolidayService } from '../schedule-holiday/schedule-holiday.service';
+import { TIME_CONSTRAINT } from '../timetable/dto/create-timeslot.dto';
 import { CreateTimetableDto } from '../timetable/dto/create-timetable.dto';
 import { UpdateTimetableDto } from '../timetable/dto/update-timetable.dto';
 import { TimetableService } from '../timetable/timetable.service';
@@ -158,11 +159,17 @@ export class ScheduleService {
   private prepareTime(time: string) {
     const date = new Date(`${FakeDate} ${time}`);
 
-    return date.toLocaleString('en-US', {
-      hour: 'numeric',
-      minute: 'numeric',
+    const preparedTime = date.toLocaleString([], {
+      hour: '2-digit',
+      minute: '2-digit',
       hour12: true,
     });
+
+    if (preparedTime.match(TIME_CONSTRAINT)[1].length < 2) {
+      return `0${preparedTime}`;
+    }
+
+    return preparedTime;
   }
 
   async updateSchedule(scheduleDto: UpdateScheduleDto) {
