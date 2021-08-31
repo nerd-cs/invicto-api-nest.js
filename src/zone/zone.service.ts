@@ -9,6 +9,8 @@ import { Location } from '../location/location.model';
 import { EntityNotFoundException } from '../exception/entity-not-found.exception';
 import { UpdateZoneDto } from './dto/update-zone.dto';
 import { PaginationRequestDto } from '../pagination/pagination-request.dto';
+import { AccessGroupScheduleZoneService } from '../access-group-schedule-zone/access-group-schedule-zone.service';
+import { EntityAlreadyExistsException } from '../exception/entity-already-exists.exception';
 
 @Injectable()
 export class ZoneService {
@@ -16,6 +18,7 @@ export class ZoneService {
     @InjectRepository(Zone) private readonly zoneRepository: Repository<Zone>,
     private readonly locationService: LocationService,
     private readonly doorService: DoorService,
+    private readonly accessGroupScheduleZoneService: AccessGroupScheduleZoneService,
   ) {}
 
   async getAllForLocation(locationId: number) {
@@ -43,6 +46,9 @@ export class ZoneService {
 
   async createZone(zoneDto: CreateZoneDto) {
     const { doorIds, zoneIds, locationId, ...restZoneAttributes } = zoneDto;
+
+    await this.throwIfNameAlreadyTaken(zoneDto.name);
+
     const location = await this.locationService.getById(locationId);
 
     restZoneAttributes['location'] = location;
@@ -62,6 +68,16 @@ export class ZoneService {
     }
 
     return this.zoneRepository.save(restZoneAttributes);
+  }
+
+  async throwIfNameAlreadyTaken(name: string) {
+    if (await this.findByName(name)) {
+      throw new EntityAlreadyExistsException({ name: name });
+    }
+  }
+
+  async findByName(name: string) {
+    return await this.zoneRepository.findOne({ where: { name: name } });
   }
 
   async getByIdsAndLocation(
@@ -90,7 +106,11 @@ export class ZoneService {
       'childZones',
     ]);
 
-    zone.name = zoneDto.name || zone.name;
+    if (zoneDto.name && zoneDto.name !== zone.name) {
+      await this.throwIfNameAlreadyTaken(zoneDto.name);
+      zone.name = zoneDto.name;
+    }
+
     zone.description = zoneDto.description || zone.description;
 
     if (zoneDto.doorIds) {
@@ -123,7 +143,11 @@ export class ZoneService {
   }
 
   async deleteZone(zoneId: number) {
-    const zone = await this.getById(zoneId, undefined);
+    const zone = await this.getById(zoneId, ['accessGroupScheduleZones']);
+
+    await this.accessGroupScheduleZoneService.removeAll(
+      zone.accessGroupScheduleZones,
+    );
 
     return await this.zoneRepository.remove(zone);
   }

@@ -29,4 +29,12 @@ export class UserAccessGroupService {
   async removeAllForUser(user: User) {
     return await this.userAccessGroupRepository.remove(user.accessGroups);
   }
+
+  async removeAll(userAccessGroups: UserAccessGroup[]) {
+    if (!userAccessGroups || !userAccessGroups.length) {
+      return [];
+    }
+
+    return await this.userAccessGroupRepository.remove(userAccessGroups);
+  }
 }
