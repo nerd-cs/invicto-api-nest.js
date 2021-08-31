@@ -6,6 +6,7 @@ import { AccessGroupController } from './access-group.controller';
 import { LocationModule } from '../location/location.module';
 import { ZoneModule } from '../zone/zone.module';
 import { ScheduleModule } from '../schedule/schedule.module';
+import { UserAccessGroupModule } from '../user-access-group/user-access-group.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { ScheduleModule } from '../schedule/schedule.module';
     LocationModule,
     ZoneModule,
     ScheduleModule,
+    UserAccessGroupModule,
   ],
   providers: [AccessGroupService],
   exports: [AccessGroupService],

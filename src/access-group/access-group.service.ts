@@ -6,6 +6,7 @@ import { EntityNotFoundException } from '../exception/entity-not-found.exception
 import { LocationService } from '../location/location.service';
 import { PaginationRequestDto } from '../pagination/pagination-request.dto';
 import { ScheduleService } from '../schedule/schedule.service';
+import { UserAccessGroupService } from '../user-access-group/user-access-group.service';
 import { User } from '../users/users.model';
 import { ZoneService } from '../zone/zone.service';
 import { AccessGroup } from './access-group.model';
@@ -20,6 +21,7 @@ export class AccessGroupService {
     private readonly locationService: LocationService,
     private readonly zoneService: ZoneService,
     private readonly scheduleService: ScheduleService,
+    private readonly userAccessGroupService: UserAccessGroupService,
   ) {}
 
   async getAllByIds(ids: number[]): Promise<AccessGroup[]> {
@@ -127,7 +129,10 @@ export class AccessGroupService {
   }
 
   async deleteAccessGroup(accessGroupId: number) {
-    const accessGroup = await this.getById(accessGroupId, ['zoneSchedules']);
+    const accessGroup = await this.getById(accessGroupId, [
+      'zoneSchedules',
+      'users',
+    ]);
 
     await this.accessGroupRepository
       .createQueryBuilder()
@@ -135,6 +140,8 @@ export class AccessGroupService {
       .from('AccessGroupScheduleZone')
       .where('access_group_id = :accessGroupId', { accessGroupId })
       .execute();
+
+    await this.userAccessGroupService.removeAll(accessGroup.users);
 
     return await this.accessGroupRepository.remove(accessGroup);
   }
