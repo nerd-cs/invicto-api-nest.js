@@ -1,5 +1,14 @@
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
-import { IsBoolean, IsNumber, IsPositive } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsArray,
+  IsBoolean,
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  ValidateNested,
+} from 'class-validator';
+import { CreateTimeslotDto } from '../../timetable/dto/create-timeslot.dto';
 
 export class AssignHolidayDto {
   @IsBoolean()
@@ -10,4 +19,11 @@ export class AssignHolidayDto {
   @IsPositive()
   @ApiModelProperty()
   readonly holidayId: number;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateTimeslotDto)
+  @ApiModelProperty({ isArray: true, type: CreateTimeslotDto })
+  readonly timetables: CreateTimeslotDto[];
 }

@@ -65,20 +65,6 @@ CREATE SEQUENCE public.role_id_seq
 
 ALTER SEQUENCE public.role_id_seq OWNED BY public.role.id;
 
-CREATE TYPE TYPE_PERMISSION as ENUM ('BUILDING_ACCESS', 'ACCOUNT_MANAGEMENT', 'CARD_REQUEST', 'READ_ACTIVITY', 'USER_MANAGEMENT', 'KEY_MANAGEMENT', 'ALL_ACCESS');
-
-CREATE TABLE role_permission (
-    role_id int NOT NULL,
-    permission TYPE_PERMISSION NOT NULL,
-    PRIMARY KEY (role_id, permission),
-    CONSTRAINT fk_role_permission_permission
-	FOREIGN KEY (role_id)
-	REFERENCES role(id)
-	ON DELETE NO ACTION
-	ON UPDATE NO ACTION
-);
-CREATE INDEX fk_role_permission_permission_idx ON role_permission(role_id ASC);
-
 --
 -- Name: user_role; Type: TABLE; Schema: public;
 
@@ -195,6 +181,19 @@ CREATE INDEX fk_user_role_user_idx ON public.user_role USING btree (user_id);
 
 CREATE UNIQUE INDEX role_value_u_idx ON public.role USING btree (value);
 
+CREATE TYPE TYPE_PERMISSION as ENUM ('BUILDING_ACCESS', 'ACCOUNT_MANAGEMENT', 'CARD_REQUEST', 'READ_ACTIVITY', 'USER_MANAGEMENT', 'KEY_MANAGEMENT', 'ALL_ACCESS');
+
+CREATE TABLE role_permission (
+    role_id int NOT NULL,
+    permission TYPE_PERMISSION NOT NULL,
+    PRIMARY KEY (role_id, permission),
+    CONSTRAINT fk_role_permission_permission
+	FOREIGN KEY (role_id)
+	REFERENCES role(id)
+	ON DELETE NO ACTION
+	ON UPDATE NO ACTION
+);
+CREATE INDEX fk_role_permission_permission_idx ON role_permission(role_id ASC);
 
 --
 -- Name: user_role fk_user_role_role; Type: FK CONSTRAINT; Schema: public;
@@ -405,6 +404,21 @@ create table schedule_holiday (
 );
 create index fk_schedule_holiday_schedule_idx on schedule_holiday(schedule_id asc);
 create index fk_schedule_holiday_holiday_idx on schedule_holiday(holiday_id asc);
+
+CREATE TABLE holiday_timetable (
+	id SERIAL NOT NULL,
+	schedule_id INT NOT NULL,
+	holiday_id INT NOT NULL,
+	start_time TIME WITH TIME ZONE NULL,
+	end_time TIME WITH TIME ZONE NULL,
+	PRIMARY KEY (id),
+	CONSTRAINT fk_holiday_timetable_schedule_holiday
+	FOREIGN KEY (schedule_id, holiday_id)
+	REFERENCES schedule_holiday(schedule_id, holiday_id)
+	ON DELETE NO ACTION
+	ON UPDATE NO ACTION
+);
+CREATE INDEX fk_holiday_timetable_schedule_holiday_idx ON holiday_timetable(schedule_id, holiday_id ASC);
 
 create type TYPE_DAY_OF_WEEK as enum ('MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY');
 

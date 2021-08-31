@@ -9,7 +9,7 @@ import {
   ValidateIf,
   ValidateNested,
 } from 'class-validator';
-import { AssignHolidayDto } from '../../holiday/dto/assign-holiday.dto';
+import { UpdateScheduleHolidayDto } from '../../schedule-holiday/dto/update-schedule-holiday.dto';
 import { UpdateTimetableDto } from '../../timetable/dto/update-timetable.dto';
 
 export class UpdateScheduleDto {
@@ -48,10 +48,14 @@ export class UpdateScheduleDto {
 
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => AssignHolidayDto)
+  @Type(() => UpdateScheduleHolidayDto)
   @ValidateIf(
     (dto) => (!dto.name && !dto.description && !dto.timetables) || dto.holidays,
   )
-  @ApiModelProperty({ isArray: true, type: AssignHolidayDto, required: false })
-  readonly holidays: AssignHolidayDto[];
+  @ApiModelProperty({
+    isArray: true,
+    type: UpdateScheduleHolidayDto,
+    required: false,
+  })
+  readonly holidays: UpdateScheduleHolidayDto[];
 }

@@ -11,6 +11,10 @@ export class ScheduleHolidayService {
   ) {}
 
   async removeAll(scheduleHolidays: ScheduleHoliday[]) {
+    if (!scheduleHolidays || !scheduleHolidays.length) {
+      return [];
+    }
+
     return await this.scheduleHolidayRepository.remove(scheduleHolidays);
   }
 }

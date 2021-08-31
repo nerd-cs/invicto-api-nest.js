@@ -1,4 +1,5 @@
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import { HolidayTimetable } from '../holiday-timetable/holiday-timetable.model';
 import { Holiday } from '../holiday/holiday.model';
 import { Schedule } from '../schedule/schedule.model';
 
@@ -20,4 +21,9 @@ export class ScheduleHoliday {
   @ManyToOne(() => Schedule, (schedule) => schedule.holidays)
   @JoinColumn([{ name: 'schedule_id', referencedColumnName: 'id' }])
   schedule: Schedule;
+
+  @OneToMany(() => HolidayTimetable, (timetable) => timetable.scheduleHoliday, {
+    cascade: true,
+  })
+  timetables: HolidayTimetable[];
 }

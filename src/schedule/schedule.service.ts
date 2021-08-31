@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { AccessGroupScheduleZoneService } from '../access-group-schedule-zone/access-group-schedule-zone.service';
 import { EntityAlreadyExistsException } from '../exception/entity-already-exists.exception';
 import { EntityNotFoundException } from '../exception/entity-not-found.exception';
+import { HolidayTimetableService } from '../holiday-timetable/holiday-timetable.service';
 import { HolidayService } from '../holiday/holiday.service';
 import { PaginationRequestDto } from '../pagination/pagination-request.dto';
 import { ScheduleHolidayService } from '../schedule-holiday/schedule-holiday.service';
@@ -25,6 +26,7 @@ export class ScheduleService {
     private readonly timetableService: TimetableService,
     private readonly scheduleHolidayService: ScheduleHolidayService,
     private readonly accessGroupScheduleZoneService: AccessGroupScheduleZoneService,
+    private readonly holidayTimetableService: HolidayTimetableService,
   ) {}
 
   async createSchedule(scheduleDto: CreateScheduleDto) {
@@ -123,6 +125,7 @@ export class ScheduleService {
       .createQueryBuilder('schedule')
       .leftJoinAndSelect('schedule.holidays', 'holidays')
       .leftJoinAndSelect('holidays.holiday', 'holiday')
+      .leftJoinAndSelect('holidays.timetables', 'holidays.timetables')
       .leftJoinAndSelect('schedule.timetables', 'timetables')
       .where('schedule.id = :scheduleId', { scheduleId })
       .getOne();
@@ -136,8 +139,20 @@ export class ScheduleService {
     rest['holidays'] = [];
 
     holidays.forEach((scheduleHoliday) => {
-      scheduleHoliday.holiday['isActive'] = scheduleHoliday.isActive;
-      rest['holidays'].push(scheduleHoliday.holiday);
+      const { holiday, isActive, timetables } = scheduleHoliday;
+
+      rest['holidays'].push({
+        id: holiday.id,
+        name: holiday.name,
+        isActive: isActive,
+        timetables: timetables.map((timetable) => {
+          return {
+            id: timetable.id,
+            startTime: this.prepareTime(timetable.startTime),
+            endTime: this.prepareTime(timetable.endTime),
+          };
+        }),
+      });
     });
 
     const timeslotsPerDay = new Map();
@@ -189,6 +204,7 @@ export class ScheduleService {
     const schedule = await this.getById(scheduleDto.id, [
       'holidays',
       'holidays.holiday',
+      'holidays.timetables',
       'timetables',
     ]);
     const { timetables: timetableUpdateDtos, ...rest } = scheduleDto;
@@ -204,6 +220,11 @@ export class ScheduleService {
       );
 
       await this.holidayService.validateIds(holidayIds);
+      await this.holidayTimetableService.removeAll(
+        schedule.holidays
+          .map((holiday) => holiday.timetables)
+          .reduce((prev, next) => prev.concat(next), []),
+      );
       await this.scheduleHolidayService.removeAll(schedule.holidays);
     }
 
@@ -256,10 +277,16 @@ export class ScheduleService {
     const schedule = await this.getById(scheduleId, [
       'timetables',
       'holidays',
+      'holidays.timetables',
       'accessGroupScheduleZones',
     ]);
 
     await this.timetableService.removeAll(schedule.timetables);
+    await this.holidayTimetableService.removeAll(
+      schedule.holidays
+        .map((holiday) => holiday.timetables)
+        .reduce((prev, next) => prev.concat(next), []),
+    );
     await this.scheduleHolidayService.removeAll(schedule.holidays);
     await this.accessGroupScheduleZoneService.removeAll(
       schedule.accessGroupScheduleZones,
