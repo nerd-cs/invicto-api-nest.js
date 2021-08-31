@@ -49,14 +49,23 @@ export class ScheduleService {
     const timetables = [];
 
     timetableDtos.forEach((timetable) => {
-      timetable.timeslots.forEach((timeslot) => {
+      const timeslots = timetable.timeslots;
+
+      if (timeslots && timeslots.length) {
+        timeslots.forEach((timeslot) => {
+          timetables.push({
+            day: timetable.day,
+            isActive: timetable.isActive,
+            startTime: timeslot.startTime,
+            endTime: timeslot.endTime,
+          });
+        });
+      } else {
         timetables.push({
           day: timetable.day,
           isActive: timetable.isActive,
-          startTime: timeslot.startTime,
-          endTime: timeslot.endTime,
         });
-      });
+      }
     });
 
     return timetables;
@@ -135,18 +144,22 @@ export class ScheduleService {
 
     timetables.forEach((timetable) => {
       const value = timeslotsPerDay.get(timetable.day);
-      const timeslot = {
-        id: timetable.id,
-        startTime: this.prepareTime(timetable.startTime),
-        endTime: this.prepareTime(timetable.endTime),
-      };
+      let timeslot;
+
+      if (timetable.startTime && timetable.endTime) {
+        timeslot = {
+          id: timetable.id,
+          startTime: this.prepareTime(timetable.startTime),
+          endTime: this.prepareTime(timetable.endTime),
+        };
+      }
 
       if (value) {
         value['timeslots'].push(timeslot);
       } else {
         timeslotsPerDay.set(timetable.day, {
           isActive: timetable.isActive,
-          timeslots: [timeslot],
+          timeslots: timeslot ? [timeslot] : [],
         });
       }
     });
@@ -191,6 +204,7 @@ export class ScheduleService {
       );
 
       await this.holidayService.validateIds(holidayIds);
+      await this.scheduleHolidayService.removeAll(schedule.holidays);
     }
 
     if (timetableUpdateDtos) {
@@ -210,20 +224,29 @@ export class ScheduleService {
     const timetables = [];
 
     updateDtos.forEach((timetable) => {
-      timetable.timeslots.forEach((timeslot) => {
-        const prepared = {
+      const timeslots = timetable.timeslots;
+
+      if (timeslots && timeslots.length) {
+        timeslots.forEach((timeslot) => {
+          const prepared = {
+            day: timetable.day,
+            isActive: timetable.isActive,
+            startTime: timeslot.startTime,
+            endTime: timeslot.endTime,
+          };
+
+          if (timeslot.id) {
+            prepared['id'] = timeslot.id;
+          }
+
+          timetables.push(prepared);
+        });
+      } else {
+        timetables.push({
           day: timetable.day,
           isActive: timetable.isActive,
-          startTime: timeslot.startTime,
-          endTime: timeslot.endTime,
-        };
-
-        if (timeslot.id) {
-          prepared['id'] = timeslot.id;
-        }
-
-        timetables.push(prepared);
-      });
+        });
+      }
     });
 
     return timetables;

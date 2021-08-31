@@ -5,7 +5,6 @@ import {
   IsEnum,
   IsBoolean,
   IsArray,
-  ArrayNotEmpty,
   ValidateNested,
   IsOptional,
 } from 'class-validator';
@@ -27,7 +26,6 @@ export class UpdateTimetableDto {
 
   @IsOptional()
   @IsArray()
-  @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => UpdateTimeslotDto)
   @ApiModelProperty({ isArray: true, type: UpdateTimeslotDto, required: false })

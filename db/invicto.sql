@@ -411,8 +411,8 @@ create type TYPE_DAY_OF_WEEK as enum ('MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDA
 create table timetable (
 	id serial not null,
 	day TYPE_DAY_OF_WEEK not null,
-	start_time time with time zone not null,
-	end_time time with time zone not null,
+	start_time time with time zone null,
+	end_time time with time zone null,
 	is_active boolean not null,
 	schedule_id int not null,
 	primary key(id),

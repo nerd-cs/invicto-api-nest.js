@@ -2,10 +2,10 @@ import { ApiProperty } from '@nestjs/swagger';
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 import { Type } from 'class-transformer';
 import {
-  ArrayNotEmpty,
   IsArray,
   IsBoolean,
   IsEnum,
+  IsOptional,
   ValidateNested,
 } from 'class-validator';
 import { TypeDayOfWeek } from '../timetable.model';
@@ -20,8 +20,8 @@ export class CreateTimetableDto {
   @ApiModelProperty()
   readonly isActive: boolean;
 
+  @IsOptional()
   @IsArray()
-  @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => CreateTimeslotDto)
   @ApiModelProperty({ isArray: true, type: CreateTimeslotDto })
