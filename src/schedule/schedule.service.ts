@@ -204,6 +204,7 @@ export class ScheduleService {
       );
 
       await this.holidayService.validateIds(holidayIds);
+      await this.scheduleHolidayService.removeAll(schedule.holidays);
     }
 
     if (timetableUpdateDtos) {
