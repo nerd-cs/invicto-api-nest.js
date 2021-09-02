@@ -10,6 +10,7 @@ import { MailModule } from '../mail/mail.module';
 import { TokenModule } from '../token/token.module';
 import { LocationModule } from '../location/location.module';
 import { UserAccessGroupModule } from '../user-access-group/user-access-group.module';
+import { UserCompanyModule } from '../user-company/user-company.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { UserAccessGroupModule } from '../user-access-group/user-access-group.mo
     TokenModule,
     LocationModule,
     UserAccessGroupModule,
+    UserCompanyModule,
   ],
   providers: [UsersService],
   exports: [UsersService],

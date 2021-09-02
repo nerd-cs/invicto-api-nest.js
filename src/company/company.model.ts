@@ -1,7 +1,7 @@
-import { User } from '../users/users.model';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Location } from '../location/location.model';
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
+import { UserCompany } from '../user-company/user-company.model';
 
 @Entity('company')
 export class Company {
@@ -16,6 +16,6 @@ export class Company {
   @OneToMany(() => Location, (location) => location.company)
   locations: Location[];
 
-  @OneToMany(() => User, (user) => user.company)
-  users: User[];
+  @OneToMany(() => UserCompany, (userCompany) => userCompany.company)
+  users: UserCompany[];
 }

@@ -52,7 +52,10 @@ export class DoorController {
     description: "User doesn't have permissions to access this resource",
   })
   @ApiQuery({ name: 'locationId', required: true })
-  @Permissions(TypePermission.ALL_ACCESS)
+  @Permissions(
+    TypePermission.ACCESS_CONTROL_MANAGEMENT,
+    TypePermission.HARDWARE_MANAGEMENT,
+  )
   @Get()
   getAllForLocation(@Query('locationId', ParseIntPipe) locationId: number) {
     if (!isPositive(locationId)) {
@@ -69,9 +72,9 @@ export class DoorController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Permissions(TypePermission.ALL_ACCESS)
+  @Permissions(TypePermission.HARDWARE_MANAGEMENT)
   @Get('/list')
-  getSchedulesPage(@Query() paginationDto: PaginationRequestDto) {
+  getDoorsPage(@Query() paginationDto: PaginationRequestDto) {
     return this.doorService.getDoorPage(paginationDto);
   }
 
@@ -82,7 +85,7 @@ export class DoorController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Permissions(TypePermission.ALL_ACCESS)
+  @Permissions(TypePermission.HARDWARE_MANAGEMENT)
   @Put()
   updateDoor(@Body() updateDoorDto: UpdateDoorDto) {
     return this.doorService.updateDoor(updateDoorDto);
@@ -96,7 +99,7 @@ export class DoorController {
     description: "User doesn't have permissions to access this resource",
   })
   @ApiParam({ name: 'doorId' })
-  @Permissions(TypePermission.ALL_ACCESS)
+  @Permissions(TypePermission.HARDWARE_MANAGEMENT)
   @Put('/:doorId/test')
   testDoor(@Param('doorId', ParseIntPipe) doorId: number) {
     if (!isPositive(doorId)) {

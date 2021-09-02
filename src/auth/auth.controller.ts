@@ -54,9 +54,7 @@ export class AuthController {
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
   @ApiBody(SIGN_IN_REQUEST_BODY_OPTIONS)
   login(@Req() request) {
-    const { permissions, ...rest } = request.user;
-
-    return rest;
+    return this.removeInternal(request.user);
   }
 
   @Get('/logout')
@@ -80,6 +78,14 @@ export class AuthController {
   @ApiExcludeEndpoint()
   @UseInterceptors(UserNotFoundInterceptor)
   googleRedirect(@Req() request) {
-    return this.authService.processGoogleData(request.user);
+    return this.removeInternal(
+      this.authService.processGoogleData(request.user),
+    );
+  }
+
+  private removeInternal(user: any) {
+    const { permissions, companies, ...rest } = user;
+
+    return rest;
   }
 }

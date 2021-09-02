@@ -50,9 +50,9 @@ export class ControllerController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Permissions(TypePermission.ALL_ACCESS)
+  @Permissions(TypePermission.HARDWARE_MANAGEMENT)
   @Get('/list')
-  getSchedulesPage(@Query() paginationDto: PaginationRequestDto) {
+  getControllerPage(@Query() paginationDto: PaginationRequestDto) {
     return this.controllerService.getControllerPage(paginationDto);
   }
 
@@ -63,7 +63,7 @@ export class ControllerController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Permissions(TypePermission.ALL_ACCESS)
+  @Permissions(TypePermission.HARDWARE_MANAGEMENT)
   @Put()
   updateController(@Body() updateControllerDto: UpdateControllerDto) {
     return this.controllerService.updateController(updateControllerDto);
@@ -77,7 +77,7 @@ export class ControllerController {
     description: "User doesn't have permissions to access this resource",
   })
   @ApiParam({ name: 'controllerId' })
-  @Permissions(TypePermission.ALL_ACCESS)
+  @Permissions(TypePermission.HARDWARE_MANAGEMENT)
   @Put('/:controllerId/test')
   testController(@Param('controllerId', ParseIntPipe) controllerId: number) {
     if (!isPositive(controllerId)) {

@@ -57,7 +57,7 @@ export class AuthService {
     user.profilePicture = await this.getPicture(userData.profilePicture);
     const updated = await this.userService.updateUser(user);
 
-    return this.userService.sanitizeUserInfo(updated);
+    return this.userService.sanitizeUserInfoAndIncludePermissions(updated);
   }
 
   async getPicture(url: string): Promise<Buffer> {

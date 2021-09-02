@@ -2,11 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { TypeUserStatus, User } from './users.model';
 import { EntityNotFoundException } from '../exception/entity-not-found.exception';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Not, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import {
   CreateUserDto,
   TypeTierAdminOption,
   TypeUserRole,
+  TypeUserRoleOutput,
 } from './dto/create-user.dto';
 import { RolesService } from '../roles/roles.service';
 import { EntityAlreadyExistsException } from '../exception/entity-already-exists.exception';
@@ -59,7 +60,8 @@ export class UsersService {
   async getUserByEmail(email: string): Promise<User> {
     const user = await this.findByEmail(email, [
       'roles',
-      'company',
+      'companies',
+      'companies.company',
       'roles.permissions',
     ]);
 
@@ -78,14 +80,15 @@ export class UsersService {
   }
 
   async getAll(user: Express.User) {
-    return await this.userRepository
-      .find({
-        relations: ['roles'],
-        where: {
-          company: user['company'],
-          status: Not(TypeUserStatus.ARCHIVED),
-        },
+    return this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.roles', 'roles')
+      .leftJoin('user.companies', 'companies')
+      .where('user.status != :status', { status: TypeUserStatus.ARCHIVED })
+      .andWhere('companies.companyId IN(:...companyIds)', {
+        companyIds: user['companies'].map((wrapper) => wrapper.companyId),
       })
+      .getMany()
       .then((users) => users.map(this.sanitizeUserInfo.bind(this)));
   }
 
@@ -117,10 +120,12 @@ export class UsersService {
   ) {
     const [page, total] = await this.userRepository
       .createQueryBuilder('user')
-      .leftJoinAndSelect('user.company', 'company')
+      .leftJoin('user.companies', 'companies')
       .leftJoinAndSelect('user.roles', 'roles')
       .leftJoinAndSelect('roles.permissions', 'permissions')
-      .where('company.id = :companyId', { companyId: user['company']['id'] })
+      .where('companies.companyId IN (:...companyIds)', {
+        companyIds: user['companies'].map((wrapper) => wrapper.companyId),
+      })
       .andWhere('roles.value IN (:...roles)', { roles })
       .andWhere('user.status != :status', { status: TypeUserStatus.ARCHIVED })
       .orderBy('user.fullName', 'ASC')
@@ -133,7 +138,7 @@ export class UsersService {
     page.forEach((user) => {
       const rawRole = user.roles[0]?.value;
       const sanitized = this.sanitizeUserInfo(user);
-      const { company, roles, ...rest } = sanitized;
+      const { roles, ...rest } = sanitized;
 
       rest['lastActivity'] = new Date();
 
@@ -177,13 +182,21 @@ export class UsersService {
     limit: number,
     user: Express.User,
   ) {
-    const [page, total] = await this.userRepository.findAndCount({
-      where: { company: user['company'], status: Not(TypeUserStatus.ARCHIVED) },
-      relations: ['accessGroups', 'accessGroups.accessGroup', 'roles'],
-      take: limit,
-      skip: offset,
-      order: { fullName: 'ASC' },
-    });
+    const [page, total] = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoin('user.companies', 'companies')
+      .leftJoinAndSelect('user.accessGroups', 'accessGroups')
+      .leftJoinAndSelect('accessGroups.accessGroup', 'accessGroup')
+      .leftJoinAndSelect('user.roles', 'roles')
+      .leftJoinAndSelect('roles.permissions', 'permissions')
+      .where('companies.companyId IN (:...companyIds)', {
+        companyIds: user['companies'].map((wrapper) => wrapper.companyId),
+      })
+      .andWhere('user.status != :status', { status: TypeUserStatus.ARCHIVED })
+      .orderBy('user.fullName', 'ASC')
+      .skip(offset)
+      .take(limit)
+      .getManyAndCount();
 
     const result = [];
 
@@ -209,7 +222,12 @@ export class UsersService {
   async getUserInfo(userId: number, admin: Express.User) {
     const user = await this.userRepository
       .createQueryBuilder('user')
-      .leftJoinAndSelect('user.company', 'company')
+      .leftJoinAndSelect(
+        'user.companies',
+        'companies',
+        'companies.isMain IS TRUE',
+      )
+      .leftJoinAndSelect('companies.company', 'company')
       .leftJoinAndSelect('user.roles', 'roles')
       .leftJoinAndSelect('user.accessGroups', 'accessGroups')
       .leftJoinAndSelect('accessGroups.accessGroup', 'accessGroup')
@@ -219,8 +237,8 @@ export class UsersService {
       .leftJoinAndSelect('user.updatedBy', 'updatedBy')
       .leftJoinAndSelect('user.cards', 'cards')
       .where('user.id = :userId', { userId })
-      .andWhere('user.company_id = :companyId', {
-        companyId: admin['company']['id'],
+      .andWhere('companies.companyId IN (:...companyIds)', {
+        companyIds: admin['companies'].map((wrapper) => wrapper.companyId),
       })
       .getOne();
 
@@ -234,7 +252,7 @@ export class UsersService {
       id: user.id,
       profilePicture: this.prepareProfilePicture(user.profilePicture),
       fullName: user.fullName,
-      company: user.company.name,
+      company: user.companies.find((company) => company.isMain).company.name,
       roles: sanitized.roles,
       status: user.status,
       email: user.email,
@@ -323,7 +341,13 @@ export class UsersService {
     restUserAttributes['status'] = instantlyInvite
       ? TypeUserStatus.PENDING
       : TypeUserStatus.INCOMPLETE;
-    restUserAttributes['company'] = admin['company'];
+    restUserAttributes['companies'] = [
+      {
+        companyId: admin['companies'].find((wrapper) => wrapper.isMain)
+          .companyId,
+        isMain: true,
+      },
+    ];
     await this.validateAndAssignAccessGroups(restUserAttributes, locations);
 
     if (cards && cards.length) {
@@ -411,7 +435,7 @@ export class UsersService {
       profilePicture,
       roles,
       status,
-      company,
+      companies,
       phoneNumber,
       twoStepAuth,
     } = user;
@@ -427,7 +451,7 @@ export class UsersService {
       profilePicture: picture,
       roles: plainRoles,
       status,
-      company,
+      company: companies?.find((wrapper) => wrapper.isMain).company,
       phoneNumber,
       twoStepAuth,
     };
@@ -437,10 +461,10 @@ export class UsersService {
     const plainRoles = roles
       ?.map((role) => role.value)
       .filter((role) => !TIER_ADMIN_OPTIONS.includes(role))
-      .map((role) => TypeUserRole[role]);
+      .map((role) => TypeUserRoleOutput[role]);
 
     if (plainRoles?.length < roles?.length) {
-      plainRoles.push(TypeUserRole.TIER_ADMIN);
+      plainRoles.push(TypeUserRoleOutput.TIER_ADMIN);
     }
 
     return plainRoles;
@@ -458,15 +482,21 @@ export class UsersService {
       .reduce((res, permissions) => res.concat(permissions))
       .map((permission) => permission.permission);
 
+    const companies = user.companies;
+
     const sanitized = this.sanitizeUserInfo(user);
 
     sanitized['permissions'] = permissions;
+    sanitized['companies'] = companies;
 
     return sanitized;
   }
 
   async inviteUser(userId: number) {
-    const user = await this.getById(userId, ['accessGroups']);
+    const user = await this.getById(userId, [
+      'accessGroups',
+      'accessGroups.accessGroup',
+    ]);
 
     if (user.status === TypeUserStatus.ACTIVE) {
       throw new InvalidInvitationException('Email already confirmed');
@@ -478,8 +508,10 @@ export class UsersService {
 
     await this.sendInvitation(user);
 
-    user.status = TypeUserStatus.PENDING;
-    await this.userRepository.save(user);
+    await this.userRepository.save({
+      id: user.id,
+      status: TypeUserStatus.PENDING,
+    });
   }
 
   async createCollaborator(
@@ -500,7 +532,13 @@ export class UsersService {
     }
 
     rest['status'] = TypeUserStatus.PENDING;
-    rest['company'] = admin['company'];
+    rest['companies'] = [
+      {
+        companyId: admin['companies'].find((wrapper) => wrapper.isMain)
+          .companyId,
+        isMain: true,
+      },
+    ];
 
     const savedUser = await this.userRepository.save(rest);
 
@@ -568,6 +606,32 @@ export class UsersService {
       relations: relations,
       where: where,
     });
+
+    if (!user) {
+      throw new EntityNotFoundException({ userId: userId });
+    }
+
+    return user;
+  }
+
+  async getByIdAndAdmin(
+    userId: number,
+    admin: Express.User,
+    relations: [string, string][] = [],
+  ) {
+    const buider = this.userRepository
+      .createQueryBuilder('user')
+      .leftJoin('user.companies', 'companies')
+      .where('user.id = :userId', { userId })
+      .andWhere('companies.companyId IN(:...companyIds)', {
+        companyIds: admin['companies'].map((wrapper) => wrapper.companyId),
+      });
+
+    relations.forEach((relation) => {
+      buider.leftJoinAndSelect(relation[0], relation[1]);
+    });
+
+    const user = await buider.getOne();
 
     if (!user) {
       throw new EntityNotFoundException({ userId: userId });
@@ -658,10 +722,7 @@ export class UsersService {
     admin: Express.User,
     dto: ChangeUserStatusDto,
   ) {
-    const user = await this.getById(userId, undefined, {
-      company: admin['company'],
-    });
-
+    const user = await this.getByIdAndAdmin(userId, admin);
     const newStatus = TypeUserStatus[dto.status];
 
     if (user.status === newStatus) {
@@ -674,9 +735,9 @@ export class UsersService {
   }
 
   async updateUserInfo(dto: UpdateUserDto, admin: Express.User) {
-    const user = await this.getById(dto.id, ['roles'], {
-      company: admin['company'],
-    });
+    const user = await this.getByIdAndAdmin(dto.id, admin, [
+      ['user.roles', 'roles'],
+    ]);
 
     if (dto.email && dto.email !== user.email) {
       await this.throwIfEmailAlreadyTaken(dto.email);
@@ -727,9 +788,7 @@ export class UsersService {
   }
 
   async getUserAccessGroups(userId: number, admin: Express.User) {
-    const user = await this.getById(userId, undefined, {
-      company: admin['company'],
-    });
+    const user = await this.getByIdAndAdmin(userId, admin);
 
     return await this.accessGroupService.getAllForUser(user);
   }
@@ -781,10 +840,10 @@ export class UsersService {
         'accessGroups.accessGroupId = :accessGroupId',
         { accessGroupId: accessGroupId },
       )
-      .leftJoin('user.company', 'company')
+      .leftJoin('user.companies', 'companies')
       .where('user.id = :userId', { userId })
-      .andWhere('company.id = :companyId', {
-        companyId: admin['company']['id'],
+      .andWhere('companies.companyId IN (:...companyIds)', {
+        companyIds: admin['companies'].map((wrapper) => wrapper.companyId),
       })
       .getOne();
 
@@ -804,9 +863,9 @@ export class UsersService {
     admin: Express.User,
     dto: UpdateAccessGroupsDto,
   ) {
-    const user = await this.getById(userId, ['accessGroups'], {
-      company: admin['company'],
-    });
+    const user = await this.getByIdAndAdmin(userId, admin, [
+      ['user.accessGroups', 'accessGroups'],
+    ]);
 
     await this.userAccessGroupService.removeAllForUser(user);
     await this.validateAndAssignAccessGroups(user, dto.locations);
@@ -856,9 +915,9 @@ export class UsersService {
     admin: Express.User,
     dto: CreateUserCardsDto,
   ) {
-    const user = await this.getById(userId, ['cards'], {
-      company: admin['company'],
-    });
+    const user = await this.getByIdAndAdmin(userId, admin, [
+      ['user.cards', 'cards'],
+    ]);
 
     return (await this.cardService.createCards(dto.cards, user)).map((card) => {
       const { user, ...rest } = card;
@@ -877,10 +936,10 @@ export class UsersService {
       .leftJoinAndSelect('user.cards', 'cards', 'cards.id = :cardId', {
         cardId,
       })
-      .leftJoin('user.company', 'company')
+      .leftJoin('user.companies', 'companies')
       .where('user.id = :userId', { userId })
-      .andWhere('company.id = :companyId', {
-        companyId: admin['company']['id'],
+      .andWhere('companies.companyId IN (:...companyIds)', {
+        companyIds: admin['companies'].map((wrapper) => wrapper.companyId),
       })
       .getOne();
 

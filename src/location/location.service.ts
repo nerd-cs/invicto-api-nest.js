@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { EntityNotFoundException } from '../exception/entity-not-found.exception';
 import { Location } from '../location/location.model';
 
@@ -12,10 +12,10 @@ export class LocationService {
   ) {}
 
   async getAllForCompany(user: Express.User): Promise<Location[]> {
-    const companyId = user['company']['id'];
+    const companyIds = user['companies'].map((wrapper) => wrapper.companyId);
 
     return await this.locationRepository.find({
-      where: { company: { id: companyId } },
+      where: { company: { id: In(companyIds) } },
     });
   }
 

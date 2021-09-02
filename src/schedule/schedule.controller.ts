@@ -52,7 +52,7 @@ export class ScheduleController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Permissions(TypePermission.ALL_ACCESS)
+  @Permissions(TypePermission.ACCESS_CONTROL_MANAGEMENT)
   @HttpCode(HttpStatus.OK)
   @Post()
   createSchedule(@Body() createScheduleDto: CreateScheduleDto) {
@@ -70,7 +70,7 @@ export class ScheduleController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Permissions(TypePermission.ALL_ACCESS)
+  @Permissions(TypePermission.ACCESS_CONTROL_MANAGEMENT)
   @Get()
   getSchedulesList() {
     return this.scheduleService.getSchedulesList();
@@ -83,7 +83,7 @@ export class ScheduleController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Permissions(TypePermission.ALL_ACCESS)
+  @Permissions(TypePermission.ACCESS_CONTROL_MANAGEMENT)
   @Get('/list')
   getSchedulesPage(@Query() paginationDto: PaginationRequestDto) {
     return this.scheduleService.getSchedulesPage(paginationDto);
@@ -100,7 +100,7 @@ export class ScheduleController {
     description: "User doesn't have permissions to access this resource",
   })
   @ApiParam({ name: 'scheduleId', required: true })
-  @Permissions(TypePermission.ALL_ACCESS)
+  @Permissions(TypePermission.ACCESS_CONTROL_MANAGEMENT)
   @Get(':scheduleId')
   getScheduleDescription(
     @Param('scheduleId', ParseIntPipe) scheduleId: number,
@@ -119,7 +119,7 @@ export class ScheduleController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Permissions(TypePermission.ALL_ACCESS)
+  @Permissions(TypePermission.ACCESS_CONTROL_MANAGEMENT)
   @Put()
   updateSchedule(@Body() updateScheduleDto: UpdateScheduleDto) {
     return this.scheduleService.updateSchedule(updateScheduleDto);
@@ -133,7 +133,7 @@ export class ScheduleController {
     description: "User doesn't have permissions to access this resource",
   })
   @ApiParam({ name: 'scheduleId', required: true })
-  @Permissions(TypePermission.ALL_ACCESS)
+  @Permissions(TypePermission.ACCESS_CONTROL_MANAGEMENT)
   @Delete(':scheduleId')
   deleteSchedule(@Param('scheduleId', ParseIntPipe) scheduleId: number) {
     if (!isPositive(scheduleId)) {

@@ -18,6 +18,16 @@ WHERE value = 'GUEST';
 INSERT INTO role_permission
 SELECT id, 'ALL_ACCESS'
 FROM role
+WHERE value = 'SUPER_ADMIN';
+
+INSERT INTO role_permission
+SELECT id, UNNEST(ARRAY['ACCOUNT_MANAGEMENT'::TYPE_PERMISSION,
+                        'ACTIVITY_MANAGEMENT'::TYPE_PERMISSION,
+                        'USER_MANAGEMENT'::TYPE_PERMISSION,
+                        'KEY_MANAGEMENT'::TYPE_PERMISSION,
+                        'ACCESS_CONTROL_MANAGEMENT'::TYPE_PERMISSION,
+                        'HARDWARE_MANAGEMENT'::TYPE_PERMISSION])
+FROM role
 WHERE value = 'ADMIN';
 
 INSERT INTO role_permission
@@ -40,40 +50,42 @@ INSERT INTO users(id,
                   email,
                   phone_number,
                   password,
-                  company_id,
                   status)
 VALUES (default,
         'John Doe',
         'johndoe@example.com',
         '+15145866598',
         '$2a$05$Z62.QHKSgWQIXjAqAWDLOedgerEXvz0ob5AADEu/3L9LtomloNGV.',
-        CURRVAL(pg_get_serial_sequence('company','id')),
         'ACTIVE');
 
 INSERT INTO user_role
 SELECT CURRVAL(pg_get_serial_sequence('users','id')), id
 FROM role
-WHERE value = 'ADMIN';
+WHERE value = 'SUPER_ADMIN';
+
+INSERT INTO user_company
+VALUES(CURRVAL(pg_get_serial_sequence('users','id')), CURRVAL(pg_get_serial_sequence('company','id')), true);
 
 INSERT INTO users(id,
                   full_name,
                   email,
                   phone_number,
                   password,
-                  company_id,
                   status)
 VALUES (default,
         'Test',
         'test@test.com',
         '+15145866598',
         '$2y$12$BbwIaaySC0QfrDRMa2u2p.FdqPt9MDV.r1fbQj/qzznmjKfyT.aw.',
-        1,
         'ACTIVE');
 
 INSERT INTO user_role
 SELECT CURRVAL(pg_get_serial_sequence('users','id')), id
 FROM role
-WHERE value = 'ADMIN';
+WHERE value = 'SUPER_ADMIN';
+
+INSERT INTO user_company
+VALUES(CURRVAL(pg_get_serial_sequence('users','id')), CURRVAL(pg_get_serial_sequence('company','id')), true);
 
 INSERT INTO location(id, name, company_id)
 VALUES(default, 'Quebec Office', CURRVAL(pg_get_serial_sequence('company','id'))),

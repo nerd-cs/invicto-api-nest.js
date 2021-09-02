@@ -27,7 +27,8 @@ CREATE TYPE public.type_role AS ENUM (
     'ADMIN',
 	'SECURITY',
 	'USER_MANAGER',
-	'FRONT_DESK'
+	'FRONT_DESK',
+	'SUPER_ADMIN'
 );
 
 
@@ -100,24 +101,17 @@ CREATE TABLE public.users (
     country character varying,
     allow_sso boolean DEFAULT false NOT NULL,
     status type_user_status null,
-    company_id int not null,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
 	updated_by int NULL,
 	primary key (id),
 	unique (email),
-    constraint fk_user_company_id
-    foreign key(company_id)
-    references company(id)
-    on delete no action
-    on update no action,
 	CONSTRAINT fk_users_users
 	FOREIGN KEY(updated_by)
 	REFERENCES users(id)
 	ON DELETE NO ACTION
 	ON UPDATE NO ACTION
 );
-create index fk_user_company_id_idx on users(company_id asc);
 CREATE INDEX fk_users_users_idx ON users(updated_by ASC);
 
 --
@@ -181,7 +175,18 @@ CREATE INDEX fk_user_role_user_idx ON public.user_role USING btree (user_id);
 
 CREATE UNIQUE INDEX role_value_u_idx ON public.role USING btree (value);
 
-CREATE TYPE TYPE_PERMISSION as ENUM ('BUILDING_ACCESS', 'ACCOUNT_MANAGEMENT', 'CARD_REQUEST', 'READ_ACTIVITY', 'USER_MANAGEMENT', 'KEY_MANAGEMENT', 'ALL_ACCESS');
+CREATE TYPE TYPE_PERMISSION as ENUM ('BUILDING_ACCESS',
+									 'ACCOUNT_MANAGEMENT',
+									 'CARD_REQUEST',
+									 'READ_ACTIVITY',
+									 'USER_MANAGEMENT',
+									 'KEY_MANAGEMENT',
+									 'ALL_ACCESS',
+									 'COMPANY_MANAGEMENT',
+									 'ACCESS_CONTROL_MANAGEMENT',
+									 'HARDWARE_MANAGEMENT',
+									 'ACTIVITY_MANAGEMENT'
+									 );
 
 CREATE TABLE role_permission (
     role_id int NOT NULL,
@@ -209,6 +214,25 @@ ALTER TABLE ONLY public.user_role
 
 ALTER TABLE ONLY public.user_role
     ADD CONSTRAINT fk_user_role_user FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+CREATE TABLE user_company (
+    user_id INT NOT NULL,
+    company_id INT NOT NULL,
+	is_main BOOLEAN NOT NULL,
+    PRIMARY KEY (user_id, company_id),
+    CONSTRAINT fk_user_company_user
+    FOREIGN KEY (user_id)
+    REFERENCES users(id)
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION,
+    CONSTRAINT fk_user_company_company
+    FOREIGN KEY (company_id)
+    REFERENCES company(id)
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+);
+CREATE INDEX fk_user_company_user_idx ON user_company(user_id ASC);
+CREATE INDEX fk_user_company_company_idx ON user_company(company_id ASC);
 
 
 create table location (

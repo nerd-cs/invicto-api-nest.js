@@ -28,6 +28,13 @@ export enum TypeTierAdminOption {
   USER_MANAGER = TypeRole.USER_MANAGER,
   FRONT_DESK = TypeRole.FRONT_DESK,
 }
+export enum TypeUserRoleOutput {
+  GUEST = 'GUEST',
+  MEMBER = 'MEMBER',
+  TIER_ADMIN = 'TIER_ADMIN',
+  ADMIN = 'ADMIN',
+  SUPER_ADMIN = 'SUPER_ADMIN',
+}
 export const PHONE_REGEX = /^\+1\d{10}$/;
 export class CreateUserDto {
   @IsEmail()

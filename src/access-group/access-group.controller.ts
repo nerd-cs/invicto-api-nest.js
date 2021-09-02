@@ -76,7 +76,7 @@ export class AccessGroupController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Permissions(TypePermission.ALL_ACCESS)
+  @Permissions(TypePermission.ACCESS_CONTROL_MANAGEMENT)
   @HttpCode(HttpStatus.OK)
   @Post()
   createAccessGroup(@Body() createAccessGroupDto: CreateAccessGroupDto) {
@@ -93,7 +93,7 @@ export class AccessGroupController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Permissions(TypePermission.ALL_ACCESS)
+  @Permissions(TypePermission.ACCESS_CONTROL_MANAGEMENT)
   @Get('/list')
   getAccessGroupsPage(@Query() paginationDto: PaginationRequestDto) {
     return this.accessGroupService.getAccessGroupsPage(paginationDto);
@@ -106,7 +106,7 @@ export class AccessGroupController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Permissions(TypePermission.ALL_ACCESS)
+  @Permissions(TypePermission.ACCESS_CONTROL_MANAGEMENT)
   @Put()
   updateAccessGroup(@Body() updateAccessGroupDto: UpdateAccessGroupDto) {
     return this.accessGroupService.updateAccessGroup(updateAccessGroupDto);
@@ -120,7 +120,7 @@ export class AccessGroupController {
     description: "User doesn't have permissions to access this resource",
   })
   @ApiParam({ name: 'accessGroupId', required: true })
-  @Permissions(TypePermission.ALL_ACCESS)
+  @Permissions(TypePermission.ACCESS_CONTROL_MANAGEMENT)
   @Delete(':accessGroupId')
   deleteAccessGroup(
     @Param('accessGroupId', ParseIntPipe) accessGroupId: number,
