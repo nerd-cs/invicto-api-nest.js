@@ -1,13 +1,5 @@
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
-import { Location } from '../location/location.model';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Schedule } from '../schedule/schedule.model';
 import { Zone } from '../zone/zone.model';
 import { AccessGroupScheduleZone } from '../access-group-schedule-zone/access-group-schedule-zone.model';
@@ -31,13 +23,6 @@ export class AccessGroup {
     default: () => 'now()',
   })
   updatedAt: Date;
-
-  @Column('integer', { name: 'location_id' })
-  locationId: number;
-
-  @ManyToOne(() => Location, (location) => location.accessGroups)
-  @JoinColumn([{ name: 'location_id', referencedColumnName: 'id' }])
-  location: Location;
 
   @OneToMany(
     () => UserAccessGroup,

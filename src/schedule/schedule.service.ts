@@ -30,7 +30,23 @@ export class ScheduleService {
   ) {}
 
   async createSchedule(scheduleDto: CreateScheduleDto) {
-    const { timetables: timetableDtos, ...restAttributes } = scheduleDto;
+    return this.scheduleRepository.save(
+      await this.validateCreateDto(scheduleDto),
+    );
+  }
+
+  async createSchedules(dto: CreateScheduleDto[]) {
+    const prepared = [];
+
+    for (let i = 0; i < dto.length; i++) {
+      prepared.push(await this.validateCreateDto(dto[i]));
+    }
+
+    return await this.scheduleRepository.save(prepared);
+  }
+
+  private async validateCreateDto(dto: CreateScheduleDto) {
+    const { timetables: timetableDtos, ...restAttributes } = dto;
 
     await this.throwIfNameAlreadyTaken(restAttributes.name);
 
@@ -44,7 +60,7 @@ export class ScheduleService {
       await this.holidayService.validateIds(holidayIds);
     }
 
-    return this.scheduleRepository.save(restAttributes);
+    return restAttributes;
   }
 
   private prepareTimetables(timetableDtos: CreateTimetableDto[]) {
@@ -305,5 +321,18 @@ export class ScheduleService {
     }
 
     return schedule;
+  }
+
+  async getByIds(ids: number[]): Promise<Schedule[]> {
+    const uniqueIds = Array.from(new Set(ids));
+    const schedules = await this.scheduleRepository.findByIds(uniqueIds);
+
+    if (!schedules || schedules.length != uniqueIds.length) {
+      throw new EntityNotFoundException({
+        scheduleIds: uniqueIds,
+      });
+    }
+
+    return schedules;
   }
 }
