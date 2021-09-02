@@ -8,7 +8,7 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { AccessGroup } from '../access-group/access-group.model';
+import { AccessGroupScheduleZone } from '../access-group-schedule-zone/access-group-schedule-zone.model';
 import { Company } from '../company/company.model';
 import { Controller } from '../controller/controller.model';
 import { Door } from '../door/door.model';
@@ -24,9 +24,6 @@ export class Location {
   @ApiModelProperty()
   name: string;
 
-  @OneToMany(() => AccessGroup, (accessGroup) => accessGroup.location)
-  accessGroups: AccessGroup[];
-
   @ManyToOne(() => Company, (company) => company.locations)
   @JoinColumn([{ name: 'company_id', referencedColumnName: 'id' }])
   company: Company;
@@ -39,4 +36,10 @@ export class Location {
 
   @OneToOne(() => Controller, (controller) => controller.location)
   controller: Controller;
+
+  @OneToMany(
+    () => AccessGroupScheduleZone,
+    (accessGroupScheduleZone) => accessGroupScheduleZone.location,
+  )
+  accessGroupScheduleZones: AccessGroupScheduleZone[];
 }
