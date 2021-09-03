@@ -52,7 +52,7 @@ export class ScheduleService {
 
     restAttributes['timetables'] = this.prepareTimetables(timetableDtos);
 
-    if (restAttributes.holidays) {
+    if (restAttributes.holidays && restAttributes.holidays.length) {
       const holidayIds = restAttributes.holidays.map(
         (holiday) => holiday.holidayId,
       );
@@ -230,12 +230,13 @@ export class ScheduleService {
       schedule.name = scheduleDto.name;
     }
 
-    if (scheduleDto.holidays) {
-      const holidayIds = scheduleDto.holidays.map(
-        (holiday) => holiday.holidayId,
-      );
+    if (rest.holidays) {
+      if (rest.holidays.length) {
+        const holidayIds = rest.holidays.map((holiday) => holiday.holidayId);
 
-      await this.holidayService.validateIds(holidayIds);
+        await this.holidayService.validateIds(holidayIds);
+      }
+
       await this.holidayTimetableService.removeAll(
         schedule.holidays
           .map((holiday) => holiday.timetables)
@@ -251,7 +252,10 @@ export class ScheduleService {
         .from('Timetable')
         .where('schedule_id = :scheduleId', { scheduleId: schedule.id })
         .execute();
-      rest['timetables'] = this.prepareUpdatedTimetables(timetableUpdateDtos);
+
+      if (timetableUpdateDtos.length) {
+        rest['timetables'] = this.prepareUpdatedTimetables(timetableUpdateDtos);
+      }
     }
 
     return await this.scheduleRepository.save(rest);

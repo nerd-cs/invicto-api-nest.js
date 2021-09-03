@@ -67,14 +67,14 @@ export class ZoneService {
 
     restZoneAttributes['location'] = location;
 
-    if (zoneIds) {
+    if (zoneIds && zoneIds.length) {
       restZoneAttributes['childZones'] = await this.getByIdsAndLocation(
         zoneIds,
         location,
       );
     }
 
-    if (doorIds) {
+    if (doorIds && doorIds.length) {
       restZoneAttributes['doors'] = await this.doorService.getByIdsAndLocation(
         doorIds,
         location,
@@ -143,12 +143,16 @@ export class ZoneService {
     zone.description = zoneDto.description || zone.description;
 
     if (zoneDto.doorIds) {
-      const doors = await this.doorService.getByIdsAndLocation(
-        zoneDto.doorIds,
-        zone.location,
-      );
+      if (zoneDto.doorIds.length) {
+        const doors = await this.doorService.getByIdsAndLocation(
+          zoneDto.doorIds,
+          zone.location,
+        );
 
-      zone.doors = doors;
+        zone.doors = doors;
+      } else {
+        zone.doors = [];
+      }
     }
 
     if (zoneDto.zoneIds) {
@@ -165,6 +169,8 @@ export class ZoneService {
         );
 
         zone.childZones = zones;
+      } else {
+        zone.childZones = [];
       }
     }
 

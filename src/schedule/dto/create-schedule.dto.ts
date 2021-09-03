@@ -31,7 +31,6 @@ export class CreateScheduleDto {
 
   @IsOptional()
   @IsArray()
-  @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => AssignHolidayDto)
   @ApiModelProperty({ isArray: true, type: AssignHolidayDto, required: false })

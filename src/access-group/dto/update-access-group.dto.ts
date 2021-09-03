@@ -4,7 +4,6 @@ import {
   IsString,
   IsOptional,
   IsNumber,
-  ArrayNotEmpty,
   IsArray,
   ValidateNested,
 } from 'class-validator';
@@ -27,7 +26,6 @@ export class UpdateAccessGroupDto {
 
   @IsOptional()
   @IsArray()
-  @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => LinkScheduleZoneDto)
   @ApiModelProperty({

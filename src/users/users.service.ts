@@ -307,7 +307,7 @@ export class UsersService {
     restUserAttributes['company'] = admin['company'];
     await this.validateAndAssignAccessGroups(restUserAttributes, locations);
 
-    if (cards) {
+    if (cards && cards.length) {
       restUserAttributes['cards'] = cards;
     }
 

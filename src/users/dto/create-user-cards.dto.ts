@@ -8,6 +8,6 @@ export class CreateUserCardsDto {
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => CreateCardDto)
-  @ApiModelProperty({ isArray: true, type: CreateCardDto, required: false })
+  @ApiModelProperty({ isArray: true, type: CreateCardDto })
   readonly cards: CreateCardDto[];
 }
