@@ -100,9 +100,11 @@ export class ScheduleService {
   }
 
   async getSchedulesPage(paginationDto: PaginationRequestDto) {
-    const offset = (paginationDto.page - 1) * paginationDto.limit;
+    const offset = paginationDto.page
+      ? (paginationDto.page - 1) * paginationDto.limit
+      : undefined;
 
-    const schedulePage = await this.scheduleRepository
+    const [schedulePage, total] = await this.scheduleRepository
       .createQueryBuilder('schedule')
       .select(['schedule', 'holiday.name'])
       .leftJoinAndSelect(
@@ -115,7 +117,7 @@ export class ScheduleService {
       .orderBy('schedule.name', 'ASC')
       .skip(offset)
       .take(paginationDto.limit)
-      .getMany();
+      .getManyAndCount();
 
     const result = [];
 
@@ -129,7 +131,10 @@ export class ScheduleService {
       result.push(rest);
     });
 
-    return result;
+    return {
+      schedules: result,
+      total,
+    };
   }
 
   async getSchedulesList() {

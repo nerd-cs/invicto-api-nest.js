@@ -150,9 +150,11 @@ export class AccessGroupService {
   }
 
   async getAccessGroupsPage(paginationDto: PaginationRequestDto) {
-    const offset = (paginationDto.page - 1) * paginationDto.limit;
+    const offset = paginationDto.page
+      ? (paginationDto.page - 1) * paginationDto.limit
+      : undefined;
 
-    const accessGroupPage = await this.accessGroupRepository
+    const [accessGroupPage, total] = await this.accessGroupRepository
       .createQueryBuilder('access_group')
       .leftJoinAndSelect('access_group.users', 'users')
       .leftJoinAndSelect('access_group.zoneSchedules', 'zone_schedules')
@@ -162,7 +164,7 @@ export class AccessGroupService {
       .orderBy('access_group.name', 'ASC')
       .skip(offset)
       .take(paginationDto.limit)
-      .getMany();
+      .getManyAndCount();
 
     const page = [];
 
@@ -183,7 +185,10 @@ export class AccessGroupService {
       page.push(rest);
     });
 
-    return page;
+    return {
+      accessGroups: page,
+      total,
+    };
   }
 
   async updateAccessGroup(updateAccessGroupDto: UpdateAccessGroupDto) {

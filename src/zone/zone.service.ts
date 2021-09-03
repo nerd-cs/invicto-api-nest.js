@@ -33,15 +33,22 @@ export class ZoneService {
   async getZonesPage(paginationDto: PaginationRequestDto, user: Express.User) {
     const locations = await this.locationService.getAllForCompany(user);
     const locationIds = locations.map((location) => location.id);
-    const offset = (paginationDto.page - 1) * paginationDto.limit;
+    const offset = paginationDto.page
+      ? (paginationDto.page - 1) * paginationDto.limit
+      : undefined;
 
-    return await this.zoneRepository.find({
+    const [page, total] = await this.zoneRepository.findAndCount({
       relations: ['location', 'doors', 'childZones'],
       where: { location: { id: In(locationIds) } },
       order: { name: 'ASC' },
       take: paginationDto.limit,
       skip: offset,
     });
+
+    return {
+      zones: page,
+      total,
+    };
   }
 
   async createZone(zoneDto: CreateZoneDto) {

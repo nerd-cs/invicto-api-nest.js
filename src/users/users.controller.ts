@@ -80,8 +80,8 @@ export class UsersController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @ApiQuery({ name: 'page' })
-  @ApiQuery({ name: 'limit' })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
   @ApiCookieAuth()
   @UseGuards(PermissionsGuard)
   @Permissions(TypePermission.USER_MANAGEMENT)
