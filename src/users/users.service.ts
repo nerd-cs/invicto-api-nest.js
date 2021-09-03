@@ -93,7 +93,9 @@ export class UsersService {
     user: Express.User,
     paginationDto: UserPaginationRequestDto,
   ) {
-    const offset = (paginationDto.page - 1) * paginationDto.limit;
+    const offset = paginationDto.page
+      ? (paginationDto.page - 1) * paginationDto.limit
+      : undefined;
 
     return paginationDto.role
       ? this.getUsersPageWithPermissions(
@@ -113,7 +115,7 @@ export class UsersService {
     user: Express.User,
     roles: TypeRole[],
   ) {
-    const page = await this.userRepository
+    const [page, total] = await this.userRepository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.company', 'company')
       .leftJoinAndSelect('user.roles', 'roles')
@@ -124,7 +126,7 @@ export class UsersService {
       .orderBy('user.fullName', 'ASC')
       .skip(offset)
       .take(limit)
-      .getMany();
+      .getManyAndCount();
 
     const result = [];
 
@@ -144,7 +146,10 @@ export class UsersService {
       result.push(rest);
     });
 
-    return result;
+    return {
+      users: result,
+      total,
+    };
   }
 
   private preparePermissionsOutput(role: TypeRole) {
@@ -172,7 +177,7 @@ export class UsersService {
     limit: number,
     user: Express.User,
   ) {
-    const page = await this.userRepository.find({
+    const [page, total] = await this.userRepository.findAndCount({
       where: { company: user['company'], status: Not(TypeUserStatus.ARCHIVED) },
       relations: ['accessGroups', 'accessGroups.accessGroup', 'roles'],
       take: limit,
@@ -195,7 +200,10 @@ export class UsersService {
       result.push(rest);
     });
 
-    return result;
+    return {
+      users: result,
+      total,
+    };
   }
 
   async getUserInfo(userId: number, admin: Express.User) {
@@ -307,7 +315,7 @@ export class UsersService {
     restUserAttributes['company'] = admin['company'];
     await this.validateAndAssignAccessGroups(restUserAttributes, locations);
 
-    if (cards) {
+    if (cards && cards.length) {
       restUserAttributes['cards'] = cards;
     }
 

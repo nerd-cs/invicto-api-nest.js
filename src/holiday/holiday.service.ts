@@ -45,13 +45,20 @@ export class HolidayService {
   }
 
   async getHolidaysPage(paginationDto: PaginationRequestDto) {
-    const offset = (paginationDto.page - 1) * paginationDto.limit;
+    const offset = paginationDto.page
+      ? (paginationDto.page - 1) * paginationDto.limit
+      : undefined;
 
-    return await this.holidayRepository.find({
+    const [page, total] = await this.holidayRepository.findAndCount({
       order: { name: 'ASC' },
       take: paginationDto.limit,
       skip: offset,
     });
+
+    return {
+      holidays: page,
+      total,
+    };
   }
 
   async updateHoliday(updateHolidayDto: UpdateHolidayDto) {

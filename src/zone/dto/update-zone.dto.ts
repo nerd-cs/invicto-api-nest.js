@@ -1,6 +1,5 @@
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 import {
-  ArrayNotEmpty,
   IsArray,
   IsNotEmpty,
   IsNumber,
@@ -32,7 +31,6 @@ export class UpdateZoneDto {
   readonly description: string;
 
   @IsArray()
-  @ArrayNotEmpty()
   @IsNumber({}, { each: true })
   @IsPositive({ each: true })
   @ValidateIf(
@@ -42,7 +40,6 @@ export class UpdateZoneDto {
   readonly doorIds: number[];
 
   @IsArray()
-  @ArrayNotEmpty()
   @IsNumber({}, { each: true })
   @IsPositive({ each: true })
   @ValidateIf(

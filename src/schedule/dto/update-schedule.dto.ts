@@ -1,7 +1,6 @@
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 import { Type } from 'class-transformer';
 import {
-  ArrayNotEmpty,
   IsArray,
   IsNumber,
   IsPositive,
@@ -33,7 +32,6 @@ export class UpdateScheduleDto {
   readonly description: string;
 
   @IsArray()
-  @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => UpdateTimetableDto)
   @ValidateIf(

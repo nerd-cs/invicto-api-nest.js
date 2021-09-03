@@ -15,14 +15,17 @@ export class ControllerService {
   ) {}
 
   async getControllerPage(paginationDto: PaginationRequestDto) {
-    const offset = (paginationDto.page - 1) * paginationDto.limit;
+    const offset = paginationDto.page
+      ? (paginationDto.page - 1) * paginationDto.limit
+      : undefined;
 
-    const controllerPage = await this.controllerRepository.find({
-      relations: ['location', 'location.doors'],
-      order: { name: 'ASC' },
-      take: paginationDto.limit,
-      skip: offset,
-    });
+    const [controllerPage, total] =
+      await this.controllerRepository.findAndCount({
+        relations: ['location', 'location.doors'],
+        order: { name: 'ASC' },
+        take: paginationDto.limit,
+        skip: offset,
+      });
 
     const result = [];
 
@@ -35,7 +38,10 @@ export class ControllerService {
       result.push(rest);
     });
 
-    return result;
+    return {
+      controllers: result,
+      total,
+    };
   }
 
   async updateController(updateDto: UpdateControllerDto) {

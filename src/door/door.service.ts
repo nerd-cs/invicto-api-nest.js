@@ -42,9 +42,11 @@ export class DoorService {
   }
 
   async getDoorPage(paginationDto: PaginationRequestDto) {
-    const offset = (paginationDto.page - 1) * paginationDto.limit;
+    const offset = paginationDto.page
+      ? (paginationDto.page - 1) * paginationDto.limit
+      : undefined;
 
-    const doorPage = await this.doorRepository.find({
+    const [doorPage, total] = await this.doorRepository.findAndCount({
       relations: ['location', 'zones'],
       order: { name: 'ASC' },
       take: paginationDto.limit,
@@ -62,7 +64,10 @@ export class DoorService {
       result.push(rest);
     });
 
-    return result;
+    return {
+      doors: result,
+      total,
+    };
   }
 
   async updateDoor(updateDto: UpdateDoorDto) {

@@ -72,8 +72,6 @@ export class AccessGroupService {
 
     rest['zoneSchedules'] = mappings;
 
-    console.log(JSON.stringify(rest));
-
     return await this.accessGroupRepository.save(rest);
   }
 
@@ -152,9 +150,11 @@ export class AccessGroupService {
   }
 
   async getAccessGroupsPage(paginationDto: PaginationRequestDto) {
-    const offset = (paginationDto.page - 1) * paginationDto.limit;
+    const offset = paginationDto.page
+      ? (paginationDto.page - 1) * paginationDto.limit
+      : undefined;
 
-    const accessGroupPage = await this.accessGroupRepository
+    const [accessGroupPage, total] = await this.accessGroupRepository
       .createQueryBuilder('access_group')
       .leftJoinAndSelect('access_group.users', 'users')
       .leftJoinAndSelect('access_group.zoneSchedules', 'zone_schedules')
@@ -164,7 +164,7 @@ export class AccessGroupService {
       .orderBy('access_group.name', 'ASC')
       .skip(offset)
       .take(paginationDto.limit)
-      .getMany();
+      .getManyAndCount();
 
     const page = [];
 
@@ -185,7 +185,10 @@ export class AccessGroupService {
       page.push(rest);
     });
 
-    return page;
+    return {
+      accessGroups: page,
+      total,
+    };
   }
 
   async updateAccessGroup(updateAccessGroupDto: UpdateAccessGroupDto) {
@@ -200,33 +203,39 @@ export class AccessGroupService {
     }
 
     if (zoneSchedules) {
-      const links = [];
-      const zones = await this.zoneService.getByIds(
-        zoneSchedules.map((wrapper) => wrapper.zoneId),
-      );
-      const zonesMap = zones.reduce(function (map, zone) {
-        map[zone.id] = zone;
+      if (!zoneSchedules.length) {
+        await this.accessGroupScheduleZoneService.removeAll(
+          accessGroup.zoneSchedules,
+        );
+      } else {
+        const links = [];
+        const zones = await this.zoneService.getByIds(
+          zoneSchedules.map((wrapper) => wrapper.zoneId),
+        );
+        const zonesMap = zones.reduce(function (map, zone) {
+          map[zone.id] = zone;
 
-        return map;
-      }, {});
+          return map;
+        }, {});
 
-      const schedules = await this.scheduleService.getByIds(
-        zoneSchedules.map((wrapper) => wrapper.scheduleId),
-      );
+        const schedules = await this.scheduleService.getByIds(
+          zoneSchedules.map((wrapper) => wrapper.scheduleId),
+        );
 
-      zoneSchedules.forEach((zoneSchedule) => {
-        links.push({
-          zoneId: zoneSchedule.zoneId,
-          scheduleId: zoneSchedule.scheduleId,
-          accessGroupId: accessGroup.id,
-          locationId: zonesMap[zoneSchedule.zoneId].location.id,
+        zoneSchedules.forEach((zoneSchedule) => {
+          links.push({
+            zoneId: zoneSchedule.zoneId,
+            scheduleId: zoneSchedule.scheduleId,
+            accessGroupId: accessGroup.id,
+            locationId: zonesMap[zoneSchedule.zoneId].location.id,
+          });
         });
-      });
 
-      await this.accessGroupScheduleZoneService.removeAll(
-        accessGroup.zoneSchedules,
-      );
-      rest['zoneSchedules'] = links;
+        await this.accessGroupScheduleZoneService.removeAll(
+          accessGroup.zoneSchedules,
+        );
+        rest['zoneSchedules'] = links;
+      }
     }
 
     return await this.accessGroupRepository.save(rest);

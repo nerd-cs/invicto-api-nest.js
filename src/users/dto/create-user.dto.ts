@@ -77,7 +77,6 @@ export class CreateUserDto {
 
   @IsOptional()
   @IsArray()
-  @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => CreateCardDto)
   @ApiModelProperty({ isArray: true, type: CreateCardDto, required: false })

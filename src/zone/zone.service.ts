@@ -33,15 +33,22 @@ export class ZoneService {
   async getZonesPage(paginationDto: PaginationRequestDto, user: Express.User) {
     const locations = await this.locationService.getAllForCompany(user);
     const locationIds = locations.map((location) => location.id);
-    const offset = (paginationDto.page - 1) * paginationDto.limit;
+    const offset = paginationDto.page
+      ? (paginationDto.page - 1) * paginationDto.limit
+      : undefined;
 
-    return await this.zoneRepository.find({
+    const [page, total] = await this.zoneRepository.findAndCount({
       relations: ['location', 'doors', 'childZones'],
       where: { location: { id: In(locationIds) } },
       order: { name: 'ASC' },
       take: paginationDto.limit,
       skip: offset,
     });
+
+    return {
+      zones: page,
+      total,
+    };
   }
 
   async createZone(zoneDto: CreateZoneDto) {
@@ -67,14 +74,14 @@ export class ZoneService {
 
     restZoneAttributes['location'] = location;
 
-    if (zoneIds) {
+    if (zoneIds && zoneIds.length) {
       restZoneAttributes['childZones'] = await this.getByIdsAndLocation(
         zoneIds,
         location,
       );
     }
 
-    if (doorIds) {
+    if (doorIds && doorIds.length) {
       restZoneAttributes['doors'] = await this.doorService.getByIdsAndLocation(
         doorIds,
         location,
@@ -143,12 +150,16 @@ export class ZoneService {
     zone.description = zoneDto.description || zone.description;
 
     if (zoneDto.doorIds) {
-      const doors = await this.doorService.getByIdsAndLocation(
-        zoneDto.doorIds,
-        zone.location,
-      );
+      if (zoneDto.doorIds.length) {
+        const doors = await this.doorService.getByIdsAndLocation(
+          zoneDto.doorIds,
+          zone.location,
+        );
 
-      zone.doors = doors;
+        zone.doors = doors;
+      } else {
+        zone.doors = [];
+      }
     }
 
     if (zoneDto.zoneIds) {
@@ -165,6 +176,8 @@ export class ZoneService {
         );
 
         zone.childZones = zones;
+      } else {
+        zone.childZones = [];
       }
     }
 
