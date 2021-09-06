@@ -200,7 +200,15 @@ export class ScheduleService {
       }
     });
 
-    rest['timetables'] = Array.from(timeslotsPerDay.entries());
+    const preparedTimetables = [];
+
+    timeslotsPerDay.forEach((value, key) => {
+      const { ...rest } = value;
+
+      rest['day'] = key;
+      preparedTimetables.push(rest);
+    });
+    rest['timetables'] = preparedTimetables;
 
     return rest;
   }

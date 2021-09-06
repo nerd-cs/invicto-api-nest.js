@@ -40,7 +40,6 @@ export class Door {
 
   @ManyToOne(() => Location, (location) => location.doors)
   @JoinColumn([{ name: 'location_id', referencedColumnName: 'id' }])
-  @ApiModelProperty({ type: String })
   location: Location;
 
   @ManyToMany(() => Zone, (zone) => zone.doors)
@@ -50,6 +49,5 @@ export class Door {
     inverseJoinColumns: [{ name: 'zone_id', referencedColumnName: 'id' }],
     schema: 'public',
   })
-  @ApiModelProperty({ type: Number })
   zones: Zone[];
 }

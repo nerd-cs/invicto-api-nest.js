@@ -33,9 +33,11 @@ import { PermissionsGuard } from '../auth/guard/permissions.guard';
 import { InvalidEntityInterceptor } from '../interceptor/invalid-entity.interceptor';
 import { PaginationRequestDto } from '../pagination/pagination-request.dto';
 import { TypePermission } from '../permission/permission.model';
+import { AccessGroup } from './access-group.model';
 import { AccessGroupService } from './access-group.service';
 import { CreateAccessGroupDto } from './dto/create-access-group.dto';
 import { UpdateAccessGroupDto } from './dto/update-access-group.dto';
+import { AccessGroupPage } from './response/access-group-page.response';
 
 @ApiCookieAuth()
 @ApiTags('access group')
@@ -46,7 +48,11 @@ export class AccessGroupController {
   constructor(private readonly accessGroupService: AccessGroupService) {}
 
   @ApiOperation({ summary: 'Get all access groups for specified location' })
-  @ApiOkResponse({ description: 'Successfully retrieved' })
+  @ApiOkResponse({
+    description: 'Successfully retrieved',
+    type: AccessGroup,
+    isArray: true,
+  })
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
   @ApiUnauthorizedResponse({ description: 'User is not authorized' })
   @ApiForbiddenResponse({
@@ -78,14 +84,15 @@ export class AccessGroupController {
   }
 
   @ApiOperation({ summary: 'Get list of access groups with pagination' })
-  @ApiOkResponse({ description: 'Successfully retrieved' })
+  @ApiOkResponse({
+    description: 'Successfully retrieved',
+    type: AccessGroupPage,
+  })
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
   @ApiUnauthorizedResponse({ description: 'User is not authorized' })
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @ApiQuery({ name: 'page', required: false })
-  @ApiQuery({ name: 'limit', required: false })
   @Permissions(TypePermission.ALL_ACCESS)
   @Get('/list')
   getAccessGroupsPage(@Query() paginationDto: PaginationRequestDto) {

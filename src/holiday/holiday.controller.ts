@@ -25,7 +25,6 @@ import {
   ApiForbiddenResponse,
   ApiCookieAuth,
   ApiTags,
-  ApiQuery,
   ApiParam,
 } from '@nestjs/swagger';
 import { Permissions } from '../auth/decorator/permissions-auth.decorator';
@@ -34,6 +33,8 @@ import { InvalidEntityInterceptor } from '../interceptor/invalid-entity.intercep
 import { PaginationRequestDto } from '../pagination/pagination-request.dto';
 import { isPositive } from 'class-validator';
 import { TypePermission } from '../permission/permission.model';
+import { Holiday } from './holiday.model';
+import { HolidayPage } from './response/holiday-page.response';
 
 @ApiCookieAuth()
 @ApiTags('holiday')
@@ -58,7 +59,11 @@ export class HolidayController {
   }
 
   @ApiOperation({ summary: 'Get all holidays' })
-  @ApiOkResponse({ description: 'Successfully retrieved' })
+  @ApiOkResponse({
+    description: 'Successfully retrieved',
+    isArray: true,
+    type: Holiday,
+  })
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
   @ApiUnauthorizedResponse({ description: 'User is not authorized' })
   @ApiForbiddenResponse({
@@ -71,14 +76,12 @@ export class HolidayController {
   }
 
   @ApiOperation({ summary: 'Get list of holidays with pagination' })
-  @ApiOkResponse({ description: 'Successfully retrieved' })
+  @ApiOkResponse({ description: 'Successfully retrieved', type: HolidayPage })
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
   @ApiUnauthorizedResponse({ description: 'User is not authorized' })
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @ApiQuery({ name: 'page', required: false })
-  @ApiQuery({ name: 'limit', required: false })
   @Permissions(TypePermission.ALL_ACCESS)
   @Get('/list')
   getHolidaysPage(@Query() paginationDto: PaginationRequestDto) {
