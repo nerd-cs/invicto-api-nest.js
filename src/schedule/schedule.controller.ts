@@ -21,7 +21,6 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
-  ApiQuery,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -33,6 +32,9 @@ import { PaginationRequestDto } from '../pagination/pagination-request.dto';
 import { TypePermission } from '../permission/permission.model';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
+import { ScheduleDescription } from './response/schedule-description.response';
+import { SchedulePage } from './response/schedule-page.response';
+import { Schedule } from './schedule.model';
 import { ScheduleService } from './schedule.service';
 
 @ApiCookieAuth()
@@ -58,7 +60,11 @@ export class ScheduleController {
   }
 
   @ApiOperation({ summary: 'Get list of schedules' })
-  @ApiOkResponse({ description: 'Successfully retrieved' })
+  @ApiOkResponse({
+    description: 'Successfully retrieved',
+    isArray: true,
+    type: Schedule,
+  })
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
   @ApiUnauthorizedResponse({ description: 'User is not authorized' })
   @ApiForbiddenResponse({
@@ -71,14 +77,12 @@ export class ScheduleController {
   }
 
   @ApiOperation({ summary: 'Get list of schedules with pagination' })
-  @ApiOkResponse({ description: 'Successfully retrieved' })
+  @ApiOkResponse({ description: 'Successfully retrieved', type: SchedulePage })
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
   @ApiUnauthorizedResponse({ description: 'User is not authorized' })
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @ApiQuery({ name: 'page', required: false })
-  @ApiQuery({ name: 'limit', required: false })
   @Permissions(TypePermission.ALL_ACCESS)
   @Get('/list')
   getSchedulesPage(@Query() paginationDto: PaginationRequestDto) {
@@ -86,7 +90,10 @@ export class ScheduleController {
   }
 
   @ApiOperation({ summary: 'Get single schedule description' })
-  @ApiOkResponse({ description: 'Successfully retrieved' })
+  @ApiOkResponse({
+    description: 'Successfully retrieved',
+    type: ScheduleDescription,
+  })
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
   @ApiUnauthorizedResponse({ description: 'User is not authorized' })
   @ApiForbiddenResponse({

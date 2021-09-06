@@ -19,7 +19,6 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
-  ApiQuery,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -31,6 +30,7 @@ import { PaginationRequestDto } from '../pagination/pagination-request.dto';
 import { TypePermission } from '../permission/permission.model';
 import { ControllerService } from './controller.service';
 import { UpdateControllerDto } from './dto/update-controller.dto';
+import { ControllerPage } from './response/controller-page.response';
 
 @ApiCookieAuth()
 @ApiTags('controller')
@@ -41,14 +41,15 @@ export class ControllerController {
   constructor(private readonly controllerService: ControllerService) {}
 
   @ApiOperation({ summary: 'Get list of controllers with pagination' })
-  @ApiOkResponse({ description: 'Successfully retrieved' })
+  @ApiOkResponse({
+    description: 'Successfully retrieved',
+    type: ControllerPage,
+  })
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
   @ApiUnauthorizedResponse({ description: 'User is not authorized' })
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @ApiQuery({ name: 'page', required: false })
-  @ApiQuery({ name: 'limit', required: false })
   @Permissions(TypePermission.ALL_ACCESS)
   @Get('/list')
   getSchedulesPage(@Query() paginationDto: PaginationRequestDto) {

@@ -3,6 +3,8 @@ import { Schedule } from '../schedule/schedule.model';
 import { Zone } from '../zone/zone.model';
 import { AccessGroup } from '../access-group/access-group.model';
 import { Location } from '../location/location.model';
+import { ApiProperty } from '@nestjs/swagger';
+import { ZoneResponse } from '../zone/response/zone.response';
 
 @Entity('access_group_schedule_zone')
 export class AccessGroupScheduleZone {
@@ -24,10 +26,12 @@ export class AccessGroupScheduleZone {
 
   @ManyToOne(() => Schedule, (schedule) => schedule.accessGroupScheduleZones)
   @JoinColumn([{ name: 'schedule_id', referencedColumnName: 'id' }])
+  @ApiProperty({ type: Schedule })
   schedule: Schedule;
 
   @ManyToOne(() => Zone, (zone) => zone.accessGroupScheduleZones)
   @JoinColumn([{ name: 'zone_id', referencedColumnName: 'id' }])
+  @ApiProperty({ type: () => ZoneResponse })
   zone: Zone;
 
   @ManyToOne(() => Location, (location) => location.accessGroupScheduleZones)

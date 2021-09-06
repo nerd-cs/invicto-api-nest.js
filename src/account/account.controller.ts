@@ -24,6 +24,7 @@ import { UpdateAccountDto } from './dto/update-account.dto';
 import { Permissions } from '../auth/decorator/permissions-auth.decorator';
 import { TypePermission } from '../permission/permission.model';
 import { PermissionsGuard } from '../auth/guard/permissions.guard';
+import { AccountResponse } from './response/account.response';
 
 @ApiCookieAuth()
 @ApiTags('account')
@@ -34,7 +35,10 @@ export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
   @ApiOperation({ summary: 'Get info about authenticated used' })
-  @ApiOkResponse({ description: 'Successfully retrieved' })
+  @ApiOkResponse({
+    description: 'Successfully retrieved',
+    type: AccountResponse,
+  })
   @ApiUnauthorizedResponse({ description: 'User is not authorized' })
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",

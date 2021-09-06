@@ -1,3 +1,4 @@
+import { ApiProperty, ApiResponseProperty } from '@nestjs/swagger';
 import {
   Column,
   Entity,
@@ -13,15 +14,19 @@ import { Timetable } from '../timetable/timetable.model';
 
 @Entity('schedule')
 export class Schedule {
+  @ApiProperty()
   @PrimaryGeneratedColumn({ type: 'integer', name: 'id' })
   id: number;
 
+  @ApiResponseProperty()
   @Column('varchar', { name: 'name', unique: true })
   name: string;
 
+  @ApiResponseProperty()
   @Column('varchar', { name: 'description', nullable: true })
   description: string;
 
+  @ApiResponseProperty()
   @Column('timestamp with time zone', {
     name: 'updated_at',
     default: () => 'now()',

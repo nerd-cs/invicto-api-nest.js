@@ -27,8 +27,10 @@ import { PermissionsGuard } from '../auth/guard/permissions.guard';
 import { InvalidEntityInterceptor } from '../interceptor/invalid-entity.interceptor';
 import { PaginationRequestDto } from '../pagination/pagination-request.dto';
 import { TypePermission } from '../permission/permission.model';
+import { Door } from './door.model';
 import { DoorService } from './door.service';
 import { UpdateDoorDto } from './dto/update-door.dto';
+import { DoorPage } from './response/door-page.response';
 
 @ApiCookieAuth()
 @ApiTags('door')
@@ -39,7 +41,11 @@ export class DoorController {
   constructor(private readonly doorService: DoorService) {}
 
   @ApiOperation({ summary: 'Get all doors for specified location' })
-  @ApiOkResponse({ description: 'Successfully retrieved' })
+  @ApiOkResponse({
+    description: 'Successfully retrieved',
+    type: Door,
+    isArray: true,
+  })
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
   @ApiUnauthorizedResponse({ description: 'User is not authorized' })
   @ApiForbiddenResponse({
@@ -57,14 +63,12 @@ export class DoorController {
   }
 
   @ApiOperation({ summary: 'Get list of doors with pagination' })
-  @ApiOkResponse({ description: 'Successfully retrieved' })
+  @ApiOkResponse({ description: 'Successfully retrieved', type: DoorPage })
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
   @ApiUnauthorizedResponse({ description: 'User is not authorized' })
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @ApiQuery({ name: 'page', required: false })
-  @ApiQuery({ name: 'limit', required: false })
   @Permissions(TypePermission.ALL_ACCESS)
   @Get('/list')
   getSchedulesPage(@Query() paginationDto: PaginationRequestDto) {

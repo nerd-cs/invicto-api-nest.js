@@ -12,6 +12,7 @@ import { Permissions } from '../auth/decorator/permissions-auth.decorator';
 import { PermissionsGuard } from '../auth/guard/permissions.guard';
 import { TypePermission } from '../permission/permission.model';
 import { LocationService } from './location.service';
+import { LocationResponse } from './response/location.response';
 
 @ApiTags('location')
 @ApiCookieAuth()
@@ -23,7 +24,11 @@ export class LocationController {
   @Get()
   @Permissions(TypePermission.USER_MANAGEMENT)
   @ApiOperation({ summary: 'Get all locations for assigned company' })
-  @ApiOkResponse({ description: 'Successfully retrieved' })
+  @ApiOkResponse({
+    description: 'Successfully retrieved',
+    type: LocationResponse,
+    isArray: true,
+  })
   @ApiUnauthorizedResponse({ description: 'User is not authorized' })
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",

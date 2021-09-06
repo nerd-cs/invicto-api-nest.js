@@ -27,7 +27,6 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
-  ApiQuery,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -42,10 +41,14 @@ import { CreateCollaboratorDto } from './dto/create-collaborator.dto';
 import { ChangeUserStatusDto } from './dto/change-user-status.dto';
 import { UpdateUserDto } from './dto/update-user-dto';
 import { UpdateAccessGroupsDto } from './dto/update-user-access-groups.dto';
-import { ChangeActivenessDto as ChangeActivenessDto } from './dto/change-activeness.dto';
+import { ChangeActivenessDto } from './dto/change-activeness.dto';
 import { UpdateUserCardDto } from './dto/update-user-card.dto';
 import { CreateUserCardsDto } from './dto/create-user-cards.dto';
 import { TypePermission } from '../permission/permission.model';
+import { UserResponse } from './response/user.response';
+import { UserPage } from './response/user-page.response';
+import { UserInfo } from './response/user-info.response';
+import { AccessGroupPerLocation } from '../access-group/response/access-group-per-location.response';
 
 @Controller('users')
 @UseInterceptors(EntityAlreadyExistsInterceptor, InvalidEntityInterceptor)
@@ -59,7 +62,7 @@ export class UsersController {
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Retrieve list of all users for assigned company' })
   @ApiOkResponse({
-    type: User,
+    type: UserResponse,
     isArray: true,
     description: 'Successfully retrieved',
   })
@@ -74,14 +77,12 @@ export class UsersController {
   @ApiOperation({
     summary: 'Get list of users for assigned company with pagination',
   })
-  @ApiOkResponse({ description: 'Successfully retrieved' })
+  @ApiOkResponse({ description: 'Successfully retrieved', type: UserPage })
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
   @ApiUnauthorizedResponse({ description: 'User is not authorized' })
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @ApiQuery({ name: 'page', required: false })
-  @ApiQuery({ name: 'limit', required: false })
   @ApiCookieAuth()
   @UseGuards(PermissionsGuard)
   @Permissions(TypePermission.USER_MANAGEMENT)
@@ -96,7 +97,7 @@ export class UsersController {
   @ApiOperation({
     summary: 'Get info about selected user',
   })
-  @ApiOkResponse({ description: 'Successfully retrieved' })
+  @ApiOkResponse({ description: 'Successfully retrieved', type: UserInfo })
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
   @ApiUnauthorizedResponse({ description: 'User is not authorized' })
   @ApiForbiddenResponse({
@@ -224,7 +225,11 @@ export class UsersController {
   @Permissions(TypePermission.USER_MANAGEMENT)
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Get access groups for selected user' })
-  @ApiOkResponse({ type: User, description: 'Successfully retrieved' })
+  @ApiOkResponse({
+    description: 'Successfully retrieved',
+    type: AccessGroupPerLocation,
+    isArray: true,
+  })
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
   @ApiUnauthorizedResponse({ description: 'User is unauthorized' })
   @ApiForbiddenResponse({
