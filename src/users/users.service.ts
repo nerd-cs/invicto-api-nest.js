@@ -213,9 +213,9 @@ export class UsersService {
       .leftJoinAndSelect('user.roles', 'roles')
       .leftJoinAndSelect('user.accessGroups', 'accessGroups')
       .leftJoinAndSelect('accessGroups.accessGroup', 'accessGroup')
+      // .leftJoinAndSelect('accessGroup.location', 'location') // TODO
       .leftJoinAndSelect('accessGroup.zoneSchedules', 'zoneSchedules')
       .leftJoinAndSelect('zoneSchedules.zone', 'zone')
-      .leftJoinAndSelect('zoneSchedules.location', 'location')
       .leftJoinAndSelect('user.updatedBy', 'updatedBy')
       .leftJoinAndSelect('user.cards', 'cards')
       .where('user.id = :userId', { userId })
@@ -244,26 +244,37 @@ export class UsersService {
       department: user.department,
       phoneNumber: user.phoneNumber,
       employeeNumber: user.employeeNumber,
-      accessGroups: await this.prepareAccessGroupsOutput(user.accessGroups),
+      accessGroups: await this.prepareAccessGroupsOutput(
+        user.accessGroups,
+        admin,
+      ),
       cards: this.prepareCardsOutput(user.cards),
     };
   }
 
-  private async prepareAccessGroupsOutput(userAccessGroups: UserAccessGroup[]) {
+  private async prepareAccessGroupsOutput(
+    userAccessGroups: UserAccessGroup[],
+    admin: Express.User,
+  ) {
     const result = [];
 
     if (!userAccessGroups || !userAccessGroups.length) {
       return [];
     }
 
+    const locations = await this.locationService.getAllForCompany(admin);
+    const locationsMap = locations.reduce(function (map, location) {
+      map[location.id] = location;
+
+      return map;
+    }, {});
+
     userAccessGroups.forEach((wrapper) => {
       const accessGroup = {
         id: wrapper.accessGroup.id,
         isActive: wrapper.isActive,
         name: wrapper.accessGroup.name,
-        locations: wrapper.accessGroup.zoneSchedules.map(
-          (zoneSchedule) => zoneSchedule.location,
-        ),
+        location: locationsMap[wrapper.accessGroup.locationId],
         lastActivity: new Date(),
         zones: wrapper.accessGroup.zoneSchedules
           .map((zoneSchedule) => zoneSchedule.zone)
@@ -366,15 +377,9 @@ export class UsersService {
     const locationIds = locations.map((location) => location.locationId);
 
     if (
-      accessGroups.filter((accessGroup) => {
-        const accessGroupLocations = accessGroup.zoneSchedules.map(
-          (wrapper) => wrapper.locationId,
-        );
-
-        return !accessGroupLocations.some((location) =>
-          locationIds.includes(location),
-        );
-      }).length
+      accessGroups.filter(
+        (accessGroup) => !locationIds.includes(accessGroup.location.id),
+      ).length
     ) {
       throw new EntityNotFoundException(locations);
     }

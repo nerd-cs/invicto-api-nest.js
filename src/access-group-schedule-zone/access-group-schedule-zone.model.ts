@@ -2,7 +2,6 @@ import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { Schedule } from '../schedule/schedule.model';
 import { Zone } from '../zone/zone.model';
 import { AccessGroup } from '../access-group/access-group.model';
-import { Location } from '../location/location.model';
 import { ApiProperty } from '@nestjs/swagger';
 import { ZoneResponse } from '../zone/response/zone.response';
 
@@ -17,9 +16,6 @@ export class AccessGroupScheduleZone {
   @Column('integer', { primary: true, name: 'zone_id' })
   zoneId: number;
 
-  @Column('integer', { name: 'location_id' })
-  locationId: number;
-
   @ManyToOne(() => AccessGroup, (accessGroup) => accessGroup.zoneSchedules)
   @JoinColumn([{ name: 'access_group_id', referencedColumnName: 'id' }])
   accessGroup: AccessGroup;
@@ -33,8 +29,4 @@ export class AccessGroupScheduleZone {
   @JoinColumn([{ name: 'zone_id', referencedColumnName: 'id' }])
   @ApiProperty({ type: () => ZoneResponse })
   zone: Zone;
-
-  @ManyToOne(() => Location, (location) => location.accessGroupScheduleZones)
-  @JoinColumn([{ name: 'location_id', referencedColumnName: 'id' }])
-  location: Location;
 }

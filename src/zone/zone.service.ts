@@ -52,23 +52,9 @@ export class ZoneService {
   }
 
   async createZone(zoneDto: CreateZoneDto) {
-    return this.zoneRepository.save(await this.validateCreateDto(zoneDto));
-  }
+    const { doorIds, zoneIds, locationId, ...restZoneAttributes } = zoneDto;
 
-  async createZones(dto: CreateZoneDto[]) {
-    const prepared = [];
-
-    for (let i = 0; i < dto.length; i++) {
-      prepared.push(await this.validateCreateDto(dto[i]));
-    }
-
-    return await this.zoneRepository.save(prepared);
-  }
-
-  private async validateCreateDto(dto: CreateZoneDto) {
-    const { doorIds, zoneIds, locationId, ...restZoneAttributes } = dto;
-
-    await this.throwIfNameAlreadyTaken(dto.name);
+    await this.throwIfNameAlreadyTaken(zoneDto.name);
 
     const location = await this.locationService.getById(locationId);
 
@@ -88,7 +74,7 @@ export class ZoneService {
       );
     }
 
-    return restZoneAttributes;
+    return this.zoneRepository.save(restZoneAttributes);
   }
 
   async throwIfNameAlreadyTaken(name: string) {
@@ -113,21 +99,6 @@ export class ZoneService {
     if (!zones || zones.length != uniqueIds.length) {
       throw new EntityNotFoundException({
         locationId: location.id,
-        zoneIds: uniqueIds,
-      });
-    }
-
-    return zones;
-  }
-
-  async getByIds(ids: number[]): Promise<Zone[]> {
-    const uniqueIds = Array.from(new Set(ids));
-    const zones = await this.zoneRepository.findByIds(uniqueIds, {
-      relations: ['location'],
-    });
-
-    if (!zones || zones.length != uniqueIds.length) {
-      throw new EntityNotFoundException({
         zoneIds: uniqueIds,
       });
     }
