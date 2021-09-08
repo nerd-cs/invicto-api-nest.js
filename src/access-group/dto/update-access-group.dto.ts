@@ -20,11 +20,6 @@ export class UpdateAccessGroupDto {
   readonly name: string;
 
   @IsOptional()
-  @IsString()
-  @ApiModelProperty({ required: false })
-  readonly description: string;
-
-  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => LinkScheduleZoneDto)

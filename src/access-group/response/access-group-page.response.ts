@@ -1,5 +1,6 @@
 import { ApiProperty, ApiResponseProperty } from '@nestjs/swagger';
 import { AccessGroupScheduleZone } from '../../access-group-schedule-zone/access-group-schedule-zone.model';
+import { LocationResponse } from '../../location/response/location.response';
 import { PaginationResponse } from '../../pagination/pagination.response';
 
 export class AccessGroupResponse {
@@ -10,10 +11,10 @@ export class AccessGroupResponse {
   readonly name: string;
 
   @ApiResponseProperty()
-  readonly description: string;
-
-  @ApiResponseProperty()
   readonly updatedAt: Date;
+
+  @ApiProperty({ type: LocationResponse })
+  readonly location: LocationResponse;
 
   @ApiResponseProperty()
   readonly users: number;

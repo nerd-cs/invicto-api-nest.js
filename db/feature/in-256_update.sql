@@ -4,7 +4,8 @@ ADD CONSTRAINT fk_access_group_location
 FOREIGN KEY (location_id)
 REFERENCES location(id)
 ON UPDATE NO ACTION
-ON DELETE NO ACTION;
+ON DELETE NO ACTION,
+DROP COLUMN description;
 
 CREATE INDEX fk_access_group_location_idx ON access_group(location_id ASC);
 

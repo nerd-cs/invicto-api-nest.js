@@ -11,6 +11,7 @@ import { UpdateZoneDto } from './dto/update-zone.dto';
 import { PaginationRequestDto } from '../pagination/pagination-request.dto';
 import { AccessGroupScheduleZoneService } from '../access-group-schedule-zone/access-group-schedule-zone.service';
 import { EntityAlreadyExistsException } from '../exception/entity-already-exists.exception';
+import { CreateCustomZoneDto } from './dto/create-custom-zone.dto';
 
 @Injectable()
 export class ZoneService {
@@ -52,25 +53,30 @@ export class ZoneService {
   }
 
   async createZone(zoneDto: CreateZoneDto) {
-    return this.zoneRepository.save(await this.validateCreateDto(zoneDto));
+    const location = await this.locationService.getById(zoneDto.locationId);
+
+    return this.zoneRepository.save(
+      await this.validateCreateDto(zoneDto, location),
+    );
   }
 
-  async createZones(dto: CreateZoneDto[]) {
+  async createZones(dto: CreateCustomZoneDto[], location: Location) {
     const prepared = [];
 
     for (let i = 0; i < dto.length; i++) {
-      prepared.push(await this.validateCreateDto(dto[i]));
+      prepared.push(await this.validateCreateDto(dto[i], location));
     }
 
     return await this.zoneRepository.save(prepared);
   }
 
-  private async validateCreateDto(dto: CreateZoneDto) {
-    const { doorIds, zoneIds, locationId, ...restZoneAttributes } = dto;
+  private async validateCreateDto(
+    dto: CreateCustomZoneDto,
+    location: Location,
+  ) {
+    const { doorIds, zoneIds, ...restZoneAttributes } = dto;
 
     await this.throwIfNameAlreadyTaken(dto.name);
-
-    const location = await this.locationService.getById(locationId);
 
     restZoneAttributes['location'] = location;
 
@@ -113,21 +119,6 @@ export class ZoneService {
     if (!zones || zones.length != uniqueIds.length) {
       throw new EntityNotFoundException({
         locationId: location.id,
-        zoneIds: uniqueIds,
-      });
-    }
-
-    return zones;
-  }
-
-  async getByIds(ids: number[]): Promise<Zone[]> {
-    const uniqueIds = Array.from(new Set(ids));
-    const zones = await this.zoneRepository.findByIds(uniqueIds, {
-      relations: ['location'],
-    });
-
-    if (!zones || zones.length != uniqueIds.length) {
-      throw new EntityNotFoundException({
         zoneIds: uniqueIds,
       });
     }

@@ -2,7 +2,8 @@ import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-prop
 import { Type } from 'class-transformer';
 import {
   IsArray,
-  IsOptional,
+  IsNumber,
+  IsPositive,
   IsString,
   ValidateIf,
   ValidateNested,
@@ -15,20 +16,16 @@ export class CreateAccessGroupDto {
   @ApiModelProperty()
   readonly name: string;
 
-  @IsOptional()
-  @IsString()
-  @ApiModelProperty({ required: false })
-  readonly description: string;
+  @IsNumber()
+  @IsPositive()
+  @ApiModelProperty()
+  readonly locationId: number;
 
   @ValidateIf((dto) => dto.zoneSchedules || !dto.custom)
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => LinkScheduleZoneDto)
-  @ApiModelProperty({
-    isArray: true,
-    type: LinkScheduleZoneDto,
-    required: false,
-  })
+  @ApiModelProperty({ isArray: true, type: LinkScheduleZoneDto })
   readonly zoneSchedules: LinkScheduleZoneDto[];
 
   @ValidateIf((dto) => dto.custom || !dto.zoneSchedules)

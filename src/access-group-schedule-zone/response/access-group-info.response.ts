@@ -11,8 +11,8 @@ export class AccessGroupInfo {
   @ApiProperty()
   readonly name: string;
 
-  @ApiProperty({ isArray: true, type: LocationResponse })
-  readonly locations: LocationResponse[];
+  @ApiProperty({ type: LocationResponse })
+  readonly location: LocationResponse;
 
   @ApiProperty()
   readonly lastActivity: Date;

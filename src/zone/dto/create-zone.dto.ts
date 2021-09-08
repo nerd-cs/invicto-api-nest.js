@@ -1,20 +1,14 @@
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 import {
-  IsArray,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsPositive,
   IsString,
-  ValidateIf,
 } from 'class-validator';
+import { CreateCustomZoneDto } from './create-custom-zone.dto';
 
-export class CreateZoneDto {
-  @IsString()
-  @IsNotEmpty()
-  @ApiModelProperty()
-  readonly name: string;
-
+export class CreateZoneDto extends CreateCustomZoneDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
@@ -25,18 +19,4 @@ export class CreateZoneDto {
   @IsPositive()
   @ApiModelProperty()
   readonly locationId: number;
-
-  @ValidateIf((dto) => !dto.zoneIds || dto.doors)
-  @IsArray()
-  @IsNumber({}, { each: true })
-  @IsPositive({ each: true })
-  @ApiModelProperty({ isArray: true, type: 'integer', required: false })
-  readonly doorIds: number[];
-
-  @ValidateIf((dto) => !dto.doorIds || dto.zoneIds)
-  @IsArray()
-  @IsNumber({}, { each: true })
-  @IsPositive({ each: true })
-  @ApiModelProperty({ isArray: true, type: 'integer', required: false })
-  readonly zoneIds: number[];
 }

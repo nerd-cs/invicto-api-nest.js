@@ -17,4 +17,5 @@ ALTER TABLE access_group_schedule_zone
 ALTER COLUMN location_id SET NOT NULL;
 
 ALTER TABLE access_group
-DROP COLUMN location_id;
+DROP COLUMN location_id,
+ADD COLUMN description VARCHAR NULL;
