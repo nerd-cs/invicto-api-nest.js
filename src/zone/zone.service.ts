@@ -11,6 +11,7 @@ import { UpdateZoneDto } from './dto/update-zone.dto';
 import { PaginationRequestDto } from '../pagination/pagination-request.dto';
 import { AccessGroupScheduleZoneService } from '../access-group-schedule-zone/access-group-schedule-zone.service';
 import { EntityAlreadyExistsException } from '../exception/entity-already-exists.exception';
+import { CreateCustomZoneDto } from './dto/create-custom-zone.dto';
 
 @Injectable()
 export class ZoneService {
@@ -52,11 +53,30 @@ export class ZoneService {
   }
 
   async createZone(zoneDto: CreateZoneDto) {
-    const { doorIds, zoneIds, locationId, ...restZoneAttributes } = zoneDto;
+    const location = await this.locationService.getById(zoneDto.locationId);
 
-    await this.throwIfNameAlreadyTaken(zoneDto.name);
+    return this.zoneRepository.save(
+      await this.validateCreateDto(zoneDto, location),
+    );
+  }
 
-    const location = await this.locationService.getById(locationId);
+  async createZones(dto: CreateCustomZoneDto[], location: Location) {
+    const prepared = [];
+
+    for (let i = 0; i < dto.length; i++) {
+      prepared.push(await this.validateCreateDto(dto[i], location));
+    }
+
+    return await this.zoneRepository.save(prepared);
+  }
+
+  private async validateCreateDto(
+    dto: CreateCustomZoneDto,
+    location: Location,
+  ) {
+    const { doorIds, zoneIds, ...restZoneAttributes } = dto;
+
+    await this.throwIfNameAlreadyTaken(dto.name);
 
     restZoneAttributes['location'] = location;
 
@@ -74,7 +94,7 @@ export class ZoneService {
       );
     }
 
-    return this.zoneRepository.save(restZoneAttributes);
+    return restZoneAttributes;
   }
 
   async throwIfNameAlreadyTaken(name: string) {

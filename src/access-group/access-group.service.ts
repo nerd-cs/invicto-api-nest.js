@@ -1,8 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { AccessGroupScheduleZoneService } from '../access-group-schedule-zone/access-group-schedule-zone.service';
+import { LinkScheduleZoneDto } from '../access-group-schedule-zone/dto/link-schedule-zone.dto';
+import { ConstraintViolationException } from '../exception/constraint-violation.exception';
 import { EntityAlreadyExistsException } from '../exception/entity-already-exists.exception';
 import { EntityNotFoundException } from '../exception/entity-not-found.exception';
+import { Location } from '../location/location.model';
 import { LocationService } from '../location/location.service';
 import { PaginationRequestDto } from '../pagination/pagination-request.dto';
 import { ScheduleService } from '../schedule/schedule.service';
@@ -11,6 +15,7 @@ import { User } from '../users/users.model';
 import { ZoneService } from '../zone/zone.service';
 import { AccessGroup } from './access-group.model';
 import { CreateAccessGroupDto } from './dto/create-access-group.dto';
+import { CreateCustomAccessDto } from './dto/create-custom-access.dto';
 import { UpdateAccessGroupDto } from './dto/update-access-group.dto';
 
 @Injectable()
@@ -22,6 +27,7 @@ export class AccessGroupService {
     private readonly zoneService: ZoneService,
     private readonly scheduleService: ScheduleService,
     private readonly userAccessGroupService: UserAccessGroupService,
+    private readonly accessGroupScheduleZoneService: AccessGroupScheduleZoneService,
   ) {}
 
   async getAllByIds(ids: number[]): Promise<AccessGroup[]> {
@@ -41,12 +47,13 @@ export class AccessGroupService {
     const location = await this.locationService.getById(locationId);
 
     return await this.accessGroupRepository.find({
+      select: ['id', 'name'],
       where: { location: location },
     });
   }
 
   async createAccessGroup(createAccessGroupDto: CreateAccessGroupDto) {
-    const { zoneSchedules, locationId, ...rest } = createAccessGroupDto;
+    const { zoneSchedules, locationId, custom, ...rest } = createAccessGroupDto;
     const location = await this.locationService.getById(locationId);
 
     await this.throwIfNameAlreadyTaken(createAccessGroupDto.name);
@@ -54,18 +61,93 @@ export class AccessGroupService {
     let mappings = [];
 
     if (zoneSchedules && zoneSchedules.length) {
-      mappings = await this.processZoneSchedules(zoneSchedules);
+      mappings = await this.processZoneSchedules(zoneSchedules, location);
     }
 
     if (custom && custom.length) {
-      mappings = mappings.concat(await this.processCustomAccess(custom));
+      mappings = mappings.concat(
+        await this.processCustomAccess(custom, location),
+      );
     }
 
     rest['zoneSchedules'] = mappings;
-    rest['zoneSchedules'] = zoneSchedules;
     rest['location'] = location;
 
     return await this.accessGroupRepository.save(rest);
+  }
+
+  private async processZoneSchedules(
+    dto: LinkScheduleZoneDto[],
+    location: Location,
+  ) {
+    const zones = await this.zoneService.getByIdsAndLocation(
+      dto.map((wrapper) => wrapper.zoneId),
+      location,
+    );
+    const schedules = await this.scheduleService.getByIds(
+      dto.map((wrapper) => wrapper.scheduleId),
+    );
+
+    const result = [];
+
+    dto.forEach((scheduleZone) => {
+      result.push({
+        zoneId: scheduleZone.zoneId,
+        scheduleId: scheduleZone.scheduleId,
+      });
+    });
+
+    return result;
+  }
+
+  private async processCustomAccess(
+    dtos: CreateCustomAccessDto[],
+    location: Location,
+  ) {
+    const zoneDtos = dtos.map((wrapper) => wrapper.zone);
+    const scheduleDtos = dtos.map((wrapper) => wrapper.schedule);
+
+    this.validateNames(zoneDtos);
+    this.validateNames(scheduleDtos);
+
+    const zones = await this.zoneService.createZones(zoneDtos, location);
+    const zonesMap = zones.reduce(function (map, zone) {
+      map[zone.name] = zone;
+
+      return map;
+    }, {});
+
+    const schedules = await this.scheduleService.createSchedules(scheduleDtos);
+    const schedulesMap = schedules.reduce(function (map, schedule) {
+      map[schedule.name] = schedule;
+
+      return map;
+    }, {});
+
+    const zoneSchedules = [];
+
+    dtos.forEach((dto) =>
+      zoneSchedules.push({
+        zoneId: zonesMap[dto.zone.name].id,
+        scheduleId: schedulesMap[dto.schedule.name].id,
+      }),
+    );
+
+    return zoneSchedules;
+  }
+
+  private validateNames(dto: unknown[]) {
+    const names = [];
+
+    dto.forEach((dto) => {
+      const name = dto['name'];
+
+      if (names.includes(name)) {
+        throw new ConstraintViolationException('name should be unique');
+      }
+
+      names.push(name);
+    });
   }
 
   async getAccessGroupsPage(paginationDto: PaginationRequestDto) {
@@ -76,6 +158,7 @@ export class AccessGroupService {
     const [accessGroupPage, total] = await this.accessGroupRepository
       .createQueryBuilder('access_group')
       .leftJoinAndSelect('access_group.users', 'users')
+      .leftJoinAndSelect('access_group.location', 'location')
       .leftJoinAndSelect('access_group.zoneSchedules', 'zone_schedules')
       .leftJoinAndSelect('zone_schedules.zone', 'zone')
       .leftJoinAndSelect('zone_schedules.schedule', 'schedule')
@@ -87,7 +170,7 @@ export class AccessGroupService {
     const page = [];
 
     accessGroupPage.forEach((accessGroup) => {
-      const { users, zoneSchedules, ...rest } = accessGroup;
+      const { users, zoneSchedules, locationId, ...rest } = accessGroup;
 
       rest['users'] = users.length;
       const preparedZoneSchedules = [];
@@ -110,9 +193,12 @@ export class AccessGroupService {
   }
 
   async updateAccessGroup(updateAccessGroupDto: UpdateAccessGroupDto) {
-    const accessGroup = await this.getById(updateAccessGroupDto.id, undefined);
+    const accessGroup = await this.getById(updateAccessGroupDto.id, [
+      'zoneSchedules',
+      'location',
+    ]);
 
-    const { zoneSchedules, locationId, ...rest } = updateAccessGroupDto;
+    const { zoneSchedules, ...rest } = updateAccessGroupDto;
 
     if (rest.name && rest.name !== accessGroup.name) {
       await this.throwIfNameAlreadyTaken(updateAccessGroupDto.name);
@@ -125,14 +211,10 @@ export class AccessGroupService {
         );
       } else {
         const links = [];
-        const zones = await this.zoneService.getByIds(
+        const zones = await this.zoneService.getByIdsAndLocation(
           zoneSchedules.map((wrapper) => wrapper.zoneId),
+          accessGroup.location,
         );
-        const zonesMap = zones.reduce(function (map, zone) {
-          map[zone.id] = zone;
-
-          return map;
-        }, {});
 
         const schedules = await this.scheduleService.getByIds(
           zoneSchedules.map((wrapper) => wrapper.scheduleId),
@@ -143,15 +225,7 @@ export class AccessGroupService {
             zoneId: zoneSchedule.zoneId,
             scheduleId: zoneSchedule.scheduleId,
             accessGroupId: accessGroup.id,
-            locationId: zonesMap[zoneSchedule.zoneId].location.id,
           });
-      const links = [];
-
-      zoneSchedules.forEach((zoneSchedule) => {
-        links.push({
-          zoneId: zoneSchedule.zoneId,
-          scheduleId: zoneSchedule.scheduleId,
-          accessGroupId: accessGroup.id,
         });
 
         await this.accessGroupScheduleZoneService.removeAll(
@@ -159,21 +233,9 @@ export class AccessGroupService {
         );
         rest['zoneSchedules'] = links;
       }
-      await this.accessGroupRepository
-        .createQueryBuilder('access_group')
-        .insert()
-        .into('AccessGroupScheduleZone')
-        .values(links)
-        .execute();
-    }
-
-    if (locationId) {
-      rest['location'] = await this.locationService.getById(locationId);
     }
 
     return await this.accessGroupRepository.save(rest);
-  }
-}
   }
 
   async deleteAccessGroup(accessGroupId: number) {

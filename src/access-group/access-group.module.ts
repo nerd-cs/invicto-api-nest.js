@@ -7,6 +7,7 @@ import { LocationModule } from '../location/location.module';
 import { ZoneModule } from '../zone/zone.module';
 import { ScheduleModule } from '../schedule/schedule.module';
 import { UserAccessGroupModule } from '../user-access-group/user-access-group.module';
+import { AccessGroupScheduleZoneModule } from '../access-group-schedule-zone/access-group-schedule-zone.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { UserAccessGroupModule } from '../user-access-group/user-access-group.mo
     ZoneModule,
     ScheduleModule,
     UserAccessGroupModule,
+    AccessGroupScheduleZoneModule,
   ],
   providers: [AccessGroupService],
   exports: [AccessGroupService],

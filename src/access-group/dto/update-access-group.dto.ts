@@ -4,7 +4,6 @@ import {
   IsString,
   IsOptional,
   IsNumber,
-  IsPositive,
   IsArray,
   ValidateNested,
 } from 'class-validator';
@@ -19,17 +18,6 @@ export class UpdateAccessGroupDto {
   @IsString()
   @ApiModelProperty({ required: false })
   readonly name: string;
-
-  @IsOptional()
-  @IsString()
-  @ApiModelProperty({ required: false })
-  readonly description: string;
-
-  @IsOptional()
-  @IsNumber()
-  @IsPositive()
-  @ApiModelProperty({ required: false })
-  readonly locationId: number;
 
   @IsOptional()
   @IsArray()

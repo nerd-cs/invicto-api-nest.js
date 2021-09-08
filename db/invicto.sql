@@ -227,7 +227,6 @@ create index fk_location_company_idx on location(company_id asc);
 create table access_group (
 	id serial not null,
 	name varchar not null,
-	description varchar null,
 	updated_at timestamp with time zone DEFAULT now() NOT NULL,
 	location_id int not null,
 	primary key(id),

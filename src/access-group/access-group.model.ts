@@ -23,9 +23,6 @@ export class AccessGroup {
   @ApiModelProperty()
   name: string;
 
-  @Column('varchar', { name: 'description', nullable: true })
-  description: string;
-
   @Column('timestamp with time zone', {
     name: 'updated_at',
     default: () => 'now()',
