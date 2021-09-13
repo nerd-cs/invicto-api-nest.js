@@ -6,7 +6,9 @@ import {
   IsEmail,
   IsEnum,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
+  IsPositive,
   IsString,
   Matches,
   ValidateNested,
@@ -55,6 +57,11 @@ export class CreateUserDto {
   })
   @ApiModelProperty()
   readonly phoneNumber: string;
+
+  @IsNumber()
+  @IsPositive()
+  @ApiModelProperty()
+  readonly companyId: number;
 
   @IsNotEmpty()
   @IsEnum(TypeUserRole)

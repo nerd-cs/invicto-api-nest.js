@@ -36,6 +36,7 @@ import { ChangeActivenessDto } from './dto/change-activeness.dto';
 import { UserAccessGroupService } from '../user-access-group/user-access-group.service';
 import { UpdateUserCardDto as UpdateUserCardDto } from './dto/update-user-card.dto';
 import { CreateUserCardsDto } from './dto/create-user-cards.dto';
+import { UserCompanyService } from '../user-company/user-company.service';
 
 export const SALT_LENGTH = 10;
 export const BASE_64_PREFIX = 'data:image/jpg;base64,';
@@ -55,6 +56,7 @@ export class UsersService {
     private readonly cardService: CardService,
     private readonly locationService: LocationService,
     private readonly userAccessGroupService: UserAccessGroupService,
+    private readonly userCompanyService: UserCompanyService,
   ) {}
 
   async getUserByEmail(email: string): Promise<User> {
@@ -325,12 +327,19 @@ export class UsersService {
   }
 
   async createUser(userDto: CreateUserDto, admin: Express.User) {
-    const { role, locations, cards, instantlyInvite, ...restUserAttributes } =
-      userDto;
+    const {
+      role,
+      roleOption,
+      locations,
+      cards,
+      instantlyInvite,
+      companyId,
+      ...restUserAttributes
+    } = userDto;
 
     await this.throwIfEmailAlreadyTaken(userDto.email);
 
-    const roleName = this.getRoleName(userDto.role, userDto.roleOption);
+    const roleName = this.getRoleName(role, roleOption);
 
     const roleEntity = await this.roleService.getRoleByName(roleName);
 
@@ -341,13 +350,7 @@ export class UsersService {
     restUserAttributes['status'] = instantlyInvite
       ? TypeUserStatus.PENDING
       : TypeUserStatus.INCOMPLETE;
-    restUserAttributes['companies'] = [
-      {
-        companyId: admin['companies'].find((wrapper) => wrapper.isMain)
-          .companyId,
-        isMain: true,
-      },
-    ];
+    restUserAttributes['companies'] = this.validateCompany(companyId, admin);
     await this.validateAndAssignAccessGroups(restUserAttributes, locations);
 
     if (cards && cards.length) {
@@ -421,6 +424,21 @@ export class UsersService {
     });
 
     user['accessGroups'] = userAccessGroups;
+  }
+
+  private validateCompany(companyId: number, admin: Express.User) {
+    if (
+      !admin['companies'].find((company) => company.companyId === companyId)
+    ) {
+      throw new EntityNotFoundException({ companyId });
+    }
+
+    return [
+      {
+        companyId,
+        isMain: true,
+      },
+    ];
   }
 
   async updateUser(userData: User) {
@@ -519,7 +537,7 @@ export class UsersService {
     admin: Express.User,
     originHeader: string,
   ) {
-    const { role, roleOption, ...rest } = dto;
+    const { role, roleOption, companyId, ...rest } = dto;
 
     await this.throwIfEmailAlreadyTaken(dto.email);
 
@@ -532,13 +550,7 @@ export class UsersService {
     }
 
     rest['status'] = TypeUserStatus.PENDING;
-    rest['companies'] = [
-      {
-        companyId: admin['companies'].find((wrapper) => wrapper.isMain)
-          .companyId,
-        isMain: true,
-      },
-    ];
+    rest['companies'] = this.validateCompany(companyId, admin);
 
     const savedUser = await this.userRepository.save(rest);
 
@@ -772,6 +784,11 @@ export class UsersService {
           'User must have TIER_ADMIN role',
         );
       }
+    }
+
+    if (dto.companyId) {
+      this.validateCompany(dto.companyId, admin);
+      await this.userCompanyService.updateUserCompany(user, dto.companyId);
     }
 
     user.fullName = dto.fullName || user.fullName;
