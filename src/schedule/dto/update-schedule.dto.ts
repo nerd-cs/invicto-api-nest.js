@@ -19,7 +19,12 @@ export class UpdateScheduleDto {
 
   @IsString()
   @ValidateIf(
-    (dto) => (!dto.description && !dto.timetables && !dto.holidays) || dto.name,
+    (dto) =>
+      (!dto.description &&
+        dto.description !== '' &&
+        !dto.timetables &&
+        !dto.holidays) ||
+      dto.name,
   )
   @ApiModelProperty({ required: false })
   readonly name: string;
@@ -35,7 +40,12 @@ export class UpdateScheduleDto {
   @ValidateNested({ each: true })
   @Type(() => UpdateTimetableDto)
   @ValidateIf(
-    (dto) => (!dto.name && !dto.description && !dto.holidays) || dto.timetables,
+    (dto) =>
+      (!dto.name &&
+        !dto.description &&
+        dto.description !== '' &&
+        !dto.holidays) ||
+      dto.timetables,
   )
   @ApiModelProperty({
     isArray: true,
@@ -48,7 +58,12 @@ export class UpdateScheduleDto {
   @ValidateNested({ each: true })
   @Type(() => UpdateScheduleHolidayDto)
   @ValidateIf(
-    (dto) => (!dto.name && !dto.description && !dto.timetables) || dto.holidays,
+    (dto) =>
+      (!dto.name &&
+        !dto.description &&
+        dto.description !== '' &&
+        !dto.timetables) ||
+      dto.holidays,
   )
   @ApiModelProperty({
     isArray: true,

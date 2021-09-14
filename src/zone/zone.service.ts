@@ -53,10 +53,15 @@ export class ZoneService {
   }
 
   async createZone(zoneDto: CreateZoneDto) {
-    const location = await this.locationService.getById(zoneDto.locationId);
+    const { description, locationId, ...rest } = zoneDto;
+    const location = await this.locationService.getById(locationId);
+
+    if (description) {
+      rest['description'] = description;
+    }
 
     return this.zoneRepository.save(
-      await this.validateCreateDto(zoneDto, location),
+      await this.validateCreateDto(rest, location),
     );
   }
 
@@ -138,7 +143,11 @@ export class ZoneService {
       zone.name = zoneDto.name;
     }
 
-    zone.description = zoneDto.description || zone.description;
+    if (zoneDto.description) {
+      zone.description = zoneDto.description;
+    } else if (zoneDto.description !== undefined) {
+      zone.description = null;
+    }
 
     if (zoneDto.doorIds) {
       if (zoneDto.doorIds.length) {

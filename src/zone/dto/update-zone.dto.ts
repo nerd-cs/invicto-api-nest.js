@@ -17,13 +17,17 @@ export class UpdateZoneDto {
   @IsString()
   @IsNotEmpty()
   @ValidateIf(
-    (dto) => (!dto.description && !dto.doorIds && !dto.zoneIds) || dto.name,
+    (dto) =>
+      (!dto.description &&
+        dto.description !== '' &&
+        !dto.doorIds &&
+        !dto.zoneIds) ||
+      dto.name,
   )
   @ApiModelProperty({ required: false })
   readonly name: string;
 
   @IsString()
-  @IsNotEmpty()
   @ValidateIf(
     (dto) => (!dto.name && !dto.doorIds && !dto.zoneIds) || dto.description,
   )
@@ -34,7 +38,12 @@ export class UpdateZoneDto {
   @IsNumber({}, { each: true })
   @IsPositive({ each: true })
   @ValidateIf(
-    (dto) => (!dto.description && !dto.name && !dto.zoneIds) || dto.doorIds,
+    (dto) =>
+      (!dto.description &&
+        dto.description !== '' &&
+        !dto.name &&
+        !dto.zoneIds) ||
+      dto.doorIds,
   )
   @ApiModelProperty({ isArray: true, type: 'integer', required: false })
   readonly doorIds: number[];
@@ -43,7 +52,12 @@ export class UpdateZoneDto {
   @IsNumber({}, { each: true })
   @IsPositive({ each: true })
   @ValidateIf(
-    (dto) => (!dto.description && !dto.name && !dto.doorIds) || dto.zoneIds,
+    (dto) =>
+      (!dto.description &&
+        dto.description !== '' &&
+        !dto.name &&
+        !dto.doorIds) ||
+      dto.zoneIds,
   )
   @ApiModelProperty({ isArray: true, type: 'integer', required: false })
   readonly zoneIds: number[];
