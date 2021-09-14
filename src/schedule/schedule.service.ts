@@ -46,9 +46,13 @@ export class ScheduleService {
   }
 
   private async validateCreateDto(dto: CreateScheduleDto) {
-    const { timetables: timetableDtos, ...restAttributes } = dto;
+    const { timetables: timetableDtos, description, ...restAttributes } = dto;
 
     await this.throwIfNameAlreadyTaken(restAttributes.name);
+
+    if (description) {
+      restAttributes['description'] = description;
+    }
 
     restAttributes['timetables'] = this.prepareTimetables(timetableDtos);
 
@@ -236,7 +240,11 @@ export class ScheduleService {
       'holidays.timetables',
       'timetables',
     ]);
-    const { timetables: timetableUpdateDtos, ...rest } = scheduleDto;
+    const {
+      timetables: timetableUpdateDtos,
+      description,
+      ...rest
+    } = scheduleDto;
 
     if (scheduleDto.name && scheduleDto.name !== schedule.name) {
       await this.throwIfNameAlreadyTaken(scheduleDto.name);
@@ -269,6 +277,12 @@ export class ScheduleService {
       if (timetableUpdateDtos.length) {
         rest['timetables'] = this.prepareUpdatedTimetables(timetableUpdateDtos);
       }
+    }
+
+    if (description) {
+      rest['description'] = description;
+    } else if (description !== undefined) {
+      rest['description'] = null;
     }
 
     return await this.scheduleRepository.save(rest);
