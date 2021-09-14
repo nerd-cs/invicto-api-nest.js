@@ -38,6 +38,7 @@ export class UpdateUserDto {
         !dto.status &&
         !dto.role &&
         !dto.phoneNumber &&
+        !dto.companyId &&
         !dto.employeeNumber &&
         !dto.department &&
         !dto.roleOption &&
@@ -56,6 +57,7 @@ export class UpdateUserDto {
         !dto.status &&
         !dto.role &&
         !dto.phoneNumber &&
+        !dto.companyId &&
         !dto.employeeNumber &&
         !dto.department &&
         !dto.roleOption &&
@@ -74,6 +76,7 @@ export class UpdateUserDto {
         !dto.status &&
         !dto.role &&
         !dto.phoneNumber &&
+        !dto.companyId &&
         !dto.employeeNumber &&
         !dto.roleOption &&
         !dto.department),
@@ -90,6 +93,7 @@ export class UpdateUserDto {
         dto.profilePicture !== null &&
         !dto.role &&
         !dto.phoneNumber &&
+        !dto.companyId &&
         !dto.employeeNumber &&
         !dto.department &&
         !dto.roleOption &&
@@ -111,6 +115,7 @@ export class UpdateUserDto {
         !dto.profilePicture &&
         dto.profilePicture !== null &&
         !dto.phoneNumber &&
+        !dto.companyId &&
         !dto.employeeNumber &&
         !dto.department &&
         !dto.roleOption &&
@@ -133,6 +138,7 @@ export class UpdateUserDto {
         !dto.profilePicture &&
         dto.profilePicture !== null &&
         !dto.phoneNumber &&
+        !dto.companyId &&
         !dto.employeeNumber &&
         !dto.department &&
         !dto.email),
@@ -157,6 +163,7 @@ export class UpdateUserDto {
         !dto.role &&
         !dto.profilePicture &&
         dto.profilePicture !== null &&
+        !dto.companyId &&
         !dto.employeeNumber &&
         !dto.department &&
         !dto.roleOption &&
@@ -170,11 +177,32 @@ export class UpdateUserDto {
   @IsPositive()
   @ValidateIf(
     (dto) =>
+      dto.companyId ||
+      (!dto.fullName &&
+        !dto.status &&
+        !dto.role &&
+        !dto.phoneNumber &&
+        !dto.employeeNumber &&
+        !dto.profilePicture &&
+        dto.profilePicture !== null &&
+        !dto.department &&
+        !dto.roleOption &&
+        !dto.email),
+  )
+  @ApiModelProperty({ required: false })
+  readonly companyId: number;
+
+  @IsNumber()
+  @Type(() => Number)
+  @IsPositive()
+  @ValidateIf(
+    (dto) =>
       dto.employeeNumber ||
       (!dto.fullName &&
         !dto.status &&
         !dto.role &&
         !dto.phoneNumber &&
+        !dto.companyId &&
         !dto.profilePicture &&
         dto.profilePicture !== null &&
         !dto.department &&
@@ -193,6 +221,7 @@ export class UpdateUserDto {
         !dto.status &&
         !dto.role &&
         !dto.phoneNumber &&
+        !dto.companyId &&
         !dto.employeeNumber &&
         !dto.profilePicture &&
         dto.profilePicture !== null &&

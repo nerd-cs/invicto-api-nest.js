@@ -58,7 +58,7 @@ export class ZoneController {
     description: "User doesn't have permissions to access this resource",
   })
   @ApiQuery({ name: 'locationId' })
-  @Permissions(TypePermission.ALL_ACCESS)
+  @Permissions(TypePermission.ACCESS_CONTROL_MANAGEMENT)
   @Get()
   getAllForLocation(@Query('locationId', ParseIntPipe) locationId: number) {
     if (!isPositive(locationId)) {
@@ -75,7 +75,7 @@ export class ZoneController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Permissions(TypePermission.ALL_ACCESS)
+  @Permissions(TypePermission.ACCESS_CONTROL_MANAGEMENT)
   @Get('/list')
   getZonesPage(@Query() paginationDto: PaginationRequestDto, @Req() request) {
     return this.zoneService.getZonesPage(paginationDto, request.user);
@@ -88,7 +88,7 @@ export class ZoneController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Permissions(TypePermission.ALL_ACCESS)
+  @Permissions(TypePermission.ACCESS_CONTROL_MANAGEMENT)
   @HttpCode(HttpStatus.OK)
   @Post()
   createZone(@Body() createZoneDto: CreateZoneDto) {
@@ -102,7 +102,7 @@ export class ZoneController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Permissions(TypePermission.ALL_ACCESS)
+  @Permissions(TypePermission.ACCESS_CONTROL_MANAGEMENT)
   @Put()
   updateZone(@Body() updateZoneDto: UpdateZoneDto) {
     return this.zoneService.updateZone(updateZoneDto);
@@ -116,7 +116,7 @@ export class ZoneController {
     description: "User doesn't have permissions to access this resource",
   })
   @ApiParam({ name: 'zoneId', required: true })
-  @Permissions(TypePermission.ALL_ACCESS)
+  @Permissions(TypePermission.ACCESS_CONTROL_MANAGEMENT)
   @Delete('/:zoneId')
   deleteZone(@Param('zoneId', ParseIntPipe) zoneId: number) {
     if (!isPositive(zoneId)) {

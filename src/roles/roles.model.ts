@@ -15,6 +15,7 @@ export enum TypeRole {
   USER_MANAGER = 'USER_MANAGER',
   FRONT_DESK = 'FRONT_DESK',
   ADMIN = 'ADMIN',
+  SUPER_ADMIN = 'SUPER_ADMIN',
 }
 @Entity({ name: 'role' })
 export class Role {

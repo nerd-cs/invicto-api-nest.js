@@ -14,9 +14,9 @@ import { Role, TypeRole } from '../roles/roles.model';
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Card } from '../card/card.model';
-import { Company } from '../company/company.model';
 import { Token } from '../token/token.model';
 import { UserAccessGroup } from '../user-access-group/user-access-group.model';
+import { UserCompany } from '../user-company/user-company.model';
 
 export enum TypeUserStatus {
   PENDING = 'PENDING',
@@ -99,7 +99,7 @@ export class User {
   @JoinColumn([{ name: 'updated_by', referencedColumnName: 'id' }])
   updatedBy: User;
 
-  @OneToMany(() => User, (users) => users.updatedBy)
+  @OneToMany(() => User, (users) => users.updatedBy, { onDelete: 'SET NULL' })
   updatedUsers: User[];
 
   @ManyToMany(() => Role, (role) => role.users, { cascade: true })
@@ -119,10 +119,11 @@ export class User {
   })
   accessGroups: UserAccessGroup[];
 
-  @ManyToOne(() => Company, (company) => company.users)
-  @JoinColumn([{ name: 'company_id', referencedColumnName: 'id' }])
-  @ApiModelProperty()
-  company: Company;
+  @OneToMany(() => UserCompany, (userCompany) => userCompany.user, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  companies: UserCompany[];
 
   @ApiModelProperty()
   lastActivity: Date;

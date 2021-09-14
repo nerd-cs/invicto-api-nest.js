@@ -51,7 +51,7 @@ export class HolidayController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Permissions(TypePermission.ALL_ACCESS)
+  @Permissions(TypePermission.ACCESS_CONTROL_MANAGEMENT)
   @HttpCode(HttpStatus.OK)
   @Post()
   createHoliday(@Body() createHolidayDto: CreateHolidayDto) {
@@ -69,7 +69,7 @@ export class HolidayController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Permissions(TypePermission.ALL_ACCESS)
+  @Permissions(TypePermission.ACCESS_CONTROL_MANAGEMENT)
   @Get()
   getAllHolidays() {
     return this.holidayService.getAllHolidays();
@@ -82,7 +82,7 @@ export class HolidayController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Permissions(TypePermission.ALL_ACCESS)
+  @Permissions(TypePermission.ACCESS_CONTROL_MANAGEMENT)
   @Get('/list')
   getHolidaysPage(@Query() paginationDto: PaginationRequestDto) {
     return this.holidayService.getHolidaysPage(paginationDto);
@@ -95,7 +95,7 @@ export class HolidayController {
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @Permissions(TypePermission.ALL_ACCESS)
+  @Permissions(TypePermission.ACCESS_CONTROL_MANAGEMENT)
   @Put()
   updateHoliday(@Body() updateHolidayDto: UpdateHolidayDto) {
     return this.holidayService.updateHoliday(updateHolidayDto);
@@ -109,7 +109,7 @@ export class HolidayController {
     description: "User doesn't have permissions to access this resource",
   })
   @ApiParam({ name: 'holidayId', required: true })
-  @Permissions(TypePermission.ALL_ACCESS)
+  @Permissions(TypePermission.ACCESS_CONTROL_MANAGEMENT)
   @Delete(':holidayId')
   deleteHoliday(@Param('holidayId', ParseIntPipe) holidayId: number) {
     if (!isPositive(holidayId)) {

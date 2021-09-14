@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { TypeUserRole } from '../dto/create-user.dto';
+import { TypeUserRoleOutput } from '../dto/create-user.dto';
 import { TypeUserStatus } from '../users.model';
 
 export class UserResponse {
@@ -17,11 +17,11 @@ export class UserResponse {
 
   @ApiProperty({
     isArray: true,
-    type: TypeUserRole,
-    enum: TypeUserRole,
-    enumName: 'TypeUserRole',
+    type: TypeUserRoleOutput,
+    enum: TypeUserRoleOutput,
+    enumName: 'TypeUserRoleOutput',
   })
-  readonly roles: TypeUserRole[];
+  readonly roles: TypeUserRoleOutput[];
 
   @ApiProperty({ enumName: 'TypeUserStatus', enum: TypeUserStatus })
   readonly status: TypeUserStatus;

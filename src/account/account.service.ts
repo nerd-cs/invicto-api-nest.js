@@ -10,13 +10,16 @@ export class AccountService {
   constructor(private readonly userService: UsersService) {}
 
   async getAccountInfo(user: Express.User) {
-    const userEntity = await this.userService.getById(user['id'], ['company']);
+    const userEntity = await this.userService.getById(user['id'], [
+      'companies',
+      'companies.company',
+    ]);
 
     return this.prepareOutput(userEntity);
   }
 
   async updateAccount(dto: UpdateAccountDto, user: Express.User) {
-    const userEntity = await this.userService.getById(user['id'], ['company']);
+    const userEntity = await this.userService.getById(user['id']);
 
     if (dto.profilePicture) {
       userEntity.profilePicture = this.userService.preparePicture(
@@ -57,7 +60,7 @@ export class AccountService {
         user.profilePicture,
       ),
       jobTitle: user.jobTitle,
-      company: user.company,
+      company: user.companies?.find((wrapper) => wrapper.isMain).company,
       city: user.city,
       country: user.country,
       email: user.email,

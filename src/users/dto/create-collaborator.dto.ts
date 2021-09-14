@@ -7,6 +7,8 @@ import {
   IsString,
   IsEnum,
   IsOptional,
+  IsPositive,
+  IsNumber,
 } from 'class-validator';
 import { TypeTierAdminOption, TypeUserRole } from './create-user.dto';
 
@@ -21,6 +23,11 @@ export class CreateCollaboratorDto {
   @Transform(({ value }) => value?.trim())
   @ApiModelProperty()
   readonly fullName: string;
+
+  @IsNumber()
+  @IsPositive()
+  @ApiModelProperty()
+  readonly companyId: number;
 
   @IsNotEmpty()
   @IsEnum(TypeUserRole)
