@@ -56,3 +56,9 @@ ALTER COLUMN company_id SET NOT NULL;
 
 DROP TABLE user_company;
 
+ALTER TABLE company
+DROP COLUMN address,
+DROP COLUMN city,
+DROP COLUMN postal_code,
+DROP COLUMN country,
+DROP COLUMN created_at;

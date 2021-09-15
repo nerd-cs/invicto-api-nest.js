@@ -462,6 +462,8 @@ export class UsersService {
 
     const picture = this.prepareProfilePicture(profilePicture);
 
+    const company = companies?.find((wrapper) => wrapper.isMain)?.company;
+
     return {
       id,
       fullName,
@@ -469,7 +471,7 @@ export class UsersService {
       profilePicture: picture,
       roles: plainRoles,
       status,
-      company: companies?.find((wrapper) => wrapper.isMain).company,
+      company: company ? { id: company.id, name: company.name } : undefined,
       phoneNumber,
       twoStepAuth,
     };

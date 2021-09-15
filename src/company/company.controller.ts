@@ -23,6 +23,8 @@ import { CompanyService } from './company.service';
 import { Permissions } from '../auth/decorator/permissions-auth.decorator';
 import { PaginationRequestDto } from '../pagination/pagination-request.dto';
 import { Request } from 'express';
+import { Company } from './company.model';
+import { CompanyPage } from './response/company-page.response';
 
 @ApiCookieAuth()
 @ApiTags('company')
@@ -33,7 +35,11 @@ export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
 
   @ApiOperation({ summary: 'Get all companies' })
-  @ApiOkResponse({ description: 'Successfully retrieved' })
+  @ApiOkResponse({
+    description: 'Successfully retrieved',
+    type: Company,
+    isArray: true,
+  })
   @ApiUnauthorizedResponse({ description: 'User is not authorized' })
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
@@ -45,14 +51,12 @@ export class CompanyController {
   }
 
   @ApiOperation({ summary: 'Get list of companies with pagination' })
-  @ApiOkResponse({ description: 'Successfully retrieved' })
+  @ApiOkResponse({ description: 'Successfully retrieved', type: CompanyPage })
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
   @ApiUnauthorizedResponse({ description: 'User is not authorized' })
   @ApiForbiddenResponse({
     description: "User doesn't have permissions to access this resource",
   })
-  @ApiQuery({ name: 'page' })
-  @ApiQuery({ name: 'limit' })
   @Permissions(TypePermission.COMPANY_MANAGEMENT)
   @Get('/list')
   getCompanyPage(@Query() paginationDto: PaginationRequestDto) {

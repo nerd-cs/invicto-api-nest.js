@@ -52,3 +52,19 @@ FROM users;
 
 ALTER TABLE users
 DROP COLUMN company_id;
+
+ALTER TABLE company
+ADD COLUMN address VARCHAR NULL,
+ADD COLUMN city VARCHAR NULL,
+ADD COLUMN postal_code VARCHAR NULL,
+ADD COLUMN country VARCHAR NULL,
+ADD COLUMN created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now();
+
+UPDATE company 
+SET address = '101-211 King Street', city = 'Montreal', postal_code = 'H1x 3K9', country = 'Canada';
+
+ALTER TABLE company
+ALTER COLUMN address SET NOT NULL,
+ALTER COLUMN city SET NOT NULL,
+ALTER COLUMN postal_code SET NOT NULL,
+ALTER COLUMN country SET NOT NULL;

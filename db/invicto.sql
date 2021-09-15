@@ -77,6 +77,11 @@ CREATE TABLE public.user_role (
 create table company (
 	id serial not null,
 	name varchar not null,
+	address VARCHAR NOT NULL,
+	city VARCHAR NOT NULL,
+	postal_code VARCHAR NOT NULL,
+	country VARCHAR NOT NULL,
+	created_at timestamp with time zone DEFAULT now() NOT NULL,
 	primary key(id)
 );
 
