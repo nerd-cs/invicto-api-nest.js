@@ -17,6 +17,7 @@ import { Card } from '../card/card.model';
 import { Token } from '../token/token.model';
 import { UserAccessGroup } from '../user-access-group/user-access-group.model';
 import { UserCompany } from '../user-company/user-company.model';
+import { Company } from '../company/company.model';
 
 export enum TypeUserStatus {
   PENDING = 'PENDING',
@@ -136,4 +137,7 @@ export class User {
 
   @ApiModelProperty()
   permissions: string[] | string;
+
+  @ApiModelProperty()
+  company: Company;
 }

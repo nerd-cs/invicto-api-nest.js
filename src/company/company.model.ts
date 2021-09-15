@@ -13,9 +13,30 @@ export class Company {
   @ApiModelProperty()
   name: string;
 
+  @Column('varchar', { name: 'address' })
+  address: string;
+
+  @Column('varchar', { name: 'city' })
+  city: string;
+
+  @Column('varchar', { name: 'postal_code' })
+  postalCode: string;
+
+  @Column('varchar', { name: 'country' })
+  country: string;
+
+  @Column('timestamp with time zone', {
+    name: 'created_at',
+    default: () => 'now()',
+  })
+  createdAt: Date;
+
   @OneToMany(() => Location, (location) => location.company)
   locations: Location[];
 
   @OneToMany(() => UserCompany, (userCompany) => userCompany.company)
   users: UserCompany[];
+
+  @Column({ type: 'integer', select: false, update: false, insert: false })
+  members: number;
 }

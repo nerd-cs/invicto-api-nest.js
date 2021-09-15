@@ -5,7 +5,8 @@ DELETE FROM access_group;
 DELETE FROM location;
 DELETE FROM company;
 
-INSERT INTO company(id, name) VALUES(default, 'Desjardins');
+INSERT INTO company(id, name, address, city, postal_code, country)
+VALUES(default, 'Desjardins', '101-211 King Street', 'Montreal', 'H1x 3K9', 'Canada');
 
 INSERT INTO role(value)
 SELECT unnest(enum_range(NULL::type_role));

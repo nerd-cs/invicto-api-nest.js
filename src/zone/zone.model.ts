@@ -45,7 +45,11 @@ export class Zone {
   location: Location;
 
   @ManyToMany(() => Door, (door) => door.zones)
-  @ApiModelProperty({ required: false, isArray: true, type: Door })
+  @ApiModelProperty({
+    required: false,
+    isArray: true,
+    type: () => Door,
+  })
   doors: Door[];
 
   @ManyToMany(() => Zone, (zone) => zone.childZones)
