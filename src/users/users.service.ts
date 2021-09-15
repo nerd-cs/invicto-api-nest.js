@@ -37,6 +37,7 @@ import { UserAccessGroupService } from '../user-access-group/user-access-group.s
 import { UpdateUserCardDto as UpdateUserCardDto } from './dto/update-user-card.dto';
 import { CreateUserCardsDto } from './dto/create-user-cards.dto';
 import { UserCompanyService } from '../user-company/user-company.service';
+import { Company } from '../company/company.model';
 
 export const SALT_LENGTH = 10;
 export const BASE_64_PREFIX = 'data:image/jpg;base64,';
@@ -971,5 +972,35 @@ export class UsersService {
     }
 
     return user;
+  }
+
+  async linkNewCompany(company: Company) {
+    const superAdmins = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoin('user.roles', 'roles')
+      .where('roles.value = :role', { role: TypeRole.SUPER_ADMIN })
+      .getMany();
+
+    await this.userCompanyService.linkCompanyToUsers(company, superAdmins);
+  }
+
+  async archiveAndUnlinkUsers(company: Company, admin: Express.User) {
+    const users = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoin('user.roles', 'roles')
+      .leftJoin('user.companies', 'companies')
+      .where('roles.value != :role', { role: TypeRole.SUPER_ADMIN })
+      .andWhere('companies.companyId = :companyId', { companyId: company.id })
+      .getMany();
+    const prepared = users.map((user) => {
+      return {
+        id: user.id,
+        status: TypeUserStatus.ARCHIVED,
+        updatedBy: { id: admin['id'] },
+      };
+    });
+
+    await this.userRepository.save(prepared);
+    await this.userCompanyService.unlinkCompany(company, admin);
   }
 }

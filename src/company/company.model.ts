@@ -37,6 +37,6 @@ export class Company {
   @OneToMany(() => UserCompany, (userCompany) => userCompany.company)
   users: UserCompany[];
 
-  @Column('integer', { select: false })
+  @Column({ type: 'integer', select: false, update: false, insert: false })
   members: number;
 }
