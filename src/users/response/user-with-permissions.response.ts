@@ -24,7 +24,7 @@ export class UserWithPermissions {
   readonly twoStepAuth: boolean;
 
   @ApiProperty()
-  readonly lastActivity: Date;
+  readonly createdAt: Date;
 
   @ApiProperty()
   readonly permissions: string;

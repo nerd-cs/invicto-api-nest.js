@@ -6,5 +6,5 @@ export class UserWithAccessGroups extends UserResponse {
   readonly accessGroups: string[];
 
   @ApiProperty()
-  readonly lastActivity: Date;
+  readonly createdAt: Date;
 }
