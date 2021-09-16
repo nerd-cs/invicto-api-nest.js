@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 import { AccessGroupInfo } from '../../access-group-schedule-zone/response/access-group-info.response';
 import { CardResponse } from '../../card/response/card.response';
+import { Company } from '../../company/company.model';
 import { TypeUserRole } from '../dto/create-user.dto';
 import { TypeUserStatus } from '../users.model';
 
@@ -33,7 +34,7 @@ export class UserInfo {
   readonly phoneNumber: string;
 
   @ApiModelProperty()
-  readonly company: string;
+  readonly company: Company;
 
   @ApiProperty()
   readonly createdAt: Date;
