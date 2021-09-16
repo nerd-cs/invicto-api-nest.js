@@ -257,7 +257,7 @@ export class UsersService {
       id: user.id,
       profilePicture: this.prepareProfilePicture(user.profilePicture),
       fullName: user.fullName,
-      company: user.companies.find((company) => company.isMain).company.name,
+      company: sanitized.company,
       roles: sanitized.roles,
       status: user.status,
       email: user.email,
