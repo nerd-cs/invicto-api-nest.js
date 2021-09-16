@@ -140,10 +140,11 @@ export class UsersService {
 
     page.forEach((user) => {
       const rawRole = user.roles[0]?.value;
+      const createdAt = user.createdAt;
       const sanitized = this.sanitizeUserInfo(user);
       const { roles, ...rest } = sanitized;
 
-      rest['lastActivity'] = new Date();
+      rest['createdAt'] = createdAt;
 
       if (roles.includes(TypeRole.ADMIN)) {
         rest['permissions'] = this.preparePermissionsOutput(rawRole);
@@ -207,11 +208,12 @@ export class UsersService {
       const accessGroups = user.accessGroups
         .map((wrapper) => wrapper.accessGroup)
         .map((accessGroup) => accessGroup.name);
+      const createdAt = user.createdAt;
       const sanitized = this.sanitizeUserInfo(user);
       const { company, ...rest } = sanitized;
 
       rest['accessGroups'] = accessGroups;
-      rest['lastActivity'] = new Date();
+      rest['createdAt'] = createdAt;
 
       result.push(rest);
     });
