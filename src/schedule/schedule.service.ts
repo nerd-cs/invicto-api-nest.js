@@ -10,6 +10,7 @@ import { PaginationRequestDto } from '../pagination/pagination-request.dto';
 import { ScheduleHolidayService } from '../schedule-holiday/schedule-holiday.service';
 import { CreateTimetableDto } from '../timetable/dto/create-timetable.dto';
 import { UpdateTimetableDto } from '../timetable/dto/update-timetable.dto';
+import { Timetable } from '../timetable/timetable.model';
 import { TimetableService } from '../timetable/timetable.service';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
@@ -161,12 +162,22 @@ export class ScheduleService {
 
     const { timetables, holidays, ...rest } = schedule;
 
-    rest['holidays'] = [];
+    rest['holidays'] = this.prepareHolidaysOutput(holidays);
+
+    rest['timetables'] = this.prepareTimetablesOutput(timetables);
+
+    return rest;
+  }
+
+  prepareHolidaysOutput(
+    holidays: { holiday; isActive: boolean; timetables }[],
+  ) {
+    const result = [];
 
     holidays.forEach((scheduleHoliday) => {
       const { holiday, isActive, timetables } = scheduleHoliday;
 
-      rest['holidays'].push({
+      result.push({
         id: holiday.id,
         name: holiday.name,
         isActive: isActive,
@@ -180,6 +191,10 @@ export class ScheduleService {
       });
     });
 
+    return result;
+  }
+
+  prepareTimetablesOutput(timetables: Partial<Timetable>[]) {
     const timeslotsPerDay = new Map();
 
     timetables.forEach((timetable) => {
@@ -212,9 +227,8 @@ export class ScheduleService {
       rest['day'] = key;
       preparedTimetables.push(rest);
     });
-    rest['timetables'] = preparedTimetables;
 
-    return rest;
+    return preparedTimetables;
   }
 
   private prepareTime(time: string) {
@@ -288,7 +302,7 @@ export class ScheduleService {
     return await this.scheduleRepository.save(rest);
   }
 
-  private prepareUpdatedTimetables(updateDtos: UpdateTimetableDto[]) {
+  prepareUpdatedTimetables(updateDtos: UpdateTimetableDto[]) {
     const timetables = [];
 
     updateDtos.forEach((timetable) => {
