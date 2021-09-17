@@ -30,6 +30,7 @@ import { TypePermission } from '../permission/permission.model';
 import { Door } from './door.model';
 import { DoorService } from './door.service';
 import { UpdateDoorDto } from './dto/update-door.dto';
+import { DoorInfo } from './response/door-info.response';
 import { DoorPage } from './response/door-page.response';
 
 @ApiCookieAuth()
@@ -107,5 +108,23 @@ export class DoorController {
     }
 
     return this.doorService.testDoor(doorId);
+  }
+
+  @ApiOperation({ summary: 'Get info about selected door' })
+  @ApiOkResponse({ description: 'Successfully retrieved', type: DoorInfo })
+  @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
+  @ApiUnauthorizedResponse({ description: 'User is not authorized' })
+  @ApiForbiddenResponse({
+    description: "User doesn't have permissions to access this resource",
+  })
+  @ApiParam({ name: 'doorId' })
+  @Permissions(TypePermission.HARDWARE_MANAGEMENT)
+  @Get('/:doorId')
+  getDoorInfo(@Param('doorId', ParseIntPipe) doorId: number) {
+    if (!isPositive(doorId)) {
+      throw new BadRequestException('doorId must be a positive number');
+    }
+
+    return this.doorService.getDoorInfo(doorId);
   }
 }

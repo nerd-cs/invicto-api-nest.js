@@ -5,12 +5,15 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Zone } from '../zone/zone.model';
 import { Location } from '../location/location.model';
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 import { ApiProperty } from '@nestjs/swagger';
+import { DoorHoliday } from '../door-holiday/door-holiday.model';
+import { DoorTimetable } from '../door-timetable/door-timetable.model';
 
 export enum TypeDoorStatus {
   PENDING = 'PENDING',
@@ -50,4 +53,14 @@ export class Door {
     schema: 'public',
   })
   zones: Zone[];
+
+  @OneToMany(() => DoorHoliday, (doorHoliday) => doorHoliday.door, {
+    cascade: true,
+  })
+  holidays: DoorHoliday[];
+
+  @OneToMany(() => DoorTimetable, (doorTimetable) => doorTimetable.door, {
+    cascade: true,
+  })
+  timetables: DoorTimetable[];
 }

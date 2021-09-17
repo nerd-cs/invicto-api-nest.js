@@ -26,6 +26,9 @@ import { UserAccessGroupModule } from './user-access-group/user-access-group.mod
 import { PermissionModule } from './permission/permission.module';
 import { HolidayTimetableModule } from './holiday-timetable/holiday-timetable.module';
 import { UserCompanyModule } from './user-company/user-company.module';
+import { DoorTimetableModule } from './door-timetable/door-timetable.module';
+import { DoorHolidayModule } from './door-holiday/door-holiday.module';
+import { DoorHolidayTimetableModule } from './door-holiday-timetable/door-holiday-timetable.module';
 
 @Module({
   imports: [
@@ -65,6 +68,9 @@ import { UserCompanyModule } from './user-company/user-company.module';
     PermissionModule,
     HolidayTimetableModule,
     UserCompanyModule,
+    DoorTimetableModule,
+    DoorHolidayModule,
+    DoorHolidayTimetableModule,
   ],
   controllers: [AuthController, UsersController, AppController],
   providers: [],
