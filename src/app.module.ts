@@ -29,6 +29,7 @@ import { UserCompanyModule } from './user-company/user-company.module';
 import { DoorTimetableModule } from './door-timetable/door-timetable.module';
 import { DoorHolidayModule } from './door-holiday/door-holiday.module';
 import { DoorHolidayTimetableModule } from './door-holiday-timetable/door-holiday-timetable.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -71,6 +72,7 @@ import { DoorHolidayTimetableModule } from './door-holiday-timetable/door-holida
     DoorTimetableModule,
     DoorHolidayModule,
     DoorHolidayTimetableModule,
+    HealthModule,
   ],
   controllers: [AuthController, UsersController, AppController],
   providers: [],
