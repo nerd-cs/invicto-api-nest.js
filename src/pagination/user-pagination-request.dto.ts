@@ -5,6 +5,7 @@ import { PaginationRequestDto } from './pagination-request.dto';
 export enum TypeFilterRole {
   ADMIN = 'ADMIN',
   TIER_ADMIN = 'TIER_ADMIN',
+  GUEST = 'GUEST',
 }
 export class UserPaginationRequestDto extends PaginationRequestDto {
   @IsOptional()
