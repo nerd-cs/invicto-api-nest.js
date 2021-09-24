@@ -21,7 +21,10 @@ import * as bcrypt from 'bcryptjs';
 import { InvalidInvitationException } from '../exception/invalid-invitation.exception';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { PendingInvitationException } from '../exception/pending-invitation.exception';
-import { UserPaginationRequestDto } from '../pagination/user-pagination-request.dto';
+import {
+  UserPaginationRequestDto,
+  TypeFilterRole,
+} from '../pagination/user-pagination-request.dto';
 import { Role, TypeRole } from '../roles/roles.model';
 import { CreateCollaboratorDto } from './dto/create-collaborator.dto';
 import { CardService } from '../card/card.service';
@@ -38,6 +41,7 @@ import { UpdateUserCardDto as UpdateUserCardDto } from './dto/update-user-card.d
 import { CreateUserCardsDto } from './dto/create-user-cards.dto';
 import { UserCompanyService } from '../user-company/user-company.service';
 import { Company } from '../company/company.model';
+import { UserCompany } from '../user-company/user-company.model';
 
 export const SALT_LENGTH = 10;
 export const BASE_64_PREFIX = 'data:image/jpg;base64,';
@@ -102,105 +106,56 @@ export class UsersService {
     const offset = paginationDto.page
       ? (paginationDto.page - 1) * paginationDto.limit
       : undefined;
+    const roles = this.getRolesForSearch(paginationDto.role);
 
-    return paginationDto.role
-      ? this.getUsersPageWithPermissions(
-          offset,
-          paginationDto.limit,
-          user,
-          paginationDto.role === 'TIER_ADMIN'
-            ? TIER_ADMIN_OPTIONS
-            : [TypeRole[paginationDto.role]],
-        )
-      : this.getUsersPageWithAccessGroups(offset, paginationDto.limit, user);
+    return this.getUsersPageWithAccessGroups(
+      offset,
+      paginationDto.limit,
+      user,
+      roles,
+    );
   }
 
-  private async getUsersPageWithPermissions(
-    offset: number,
-    limit: number,
-    user: Express.User,
-    roles: TypeRole[],
-  ) {
-    const [page, total] = await this.userRepository
-      .createQueryBuilder('user')
-      .leftJoin('user.companies', 'companies')
-      .leftJoinAndSelect('user.roles', 'roles')
-      .leftJoinAndSelect('roles.permissions', 'permissions')
-      .where('companies.companyId IN (:...companyIds)', {
-        companyIds: user['companies'].map((wrapper) => wrapper.companyId),
-      })
-      .andWhere('roles.value IN (:...roles)', { roles })
-      .andWhere('user.status != :status', { status: TypeUserStatus.ARCHIVED })
-      .orderBy('user.fullName', 'ASC')
-      .skip(offset)
-      .take(limit)
-      .getManyAndCount();
-
-    const result = [];
-
-    page.forEach((user) => {
-      const rawRole = user.roles[0]?.value;
-      const createdAt = user.createdAt;
-      const sanitized = this.sanitizeUserInfo(user);
-      const { roles, ...rest } = sanitized;
-
-      rest['createdAt'] = createdAt;
-
-      if (roles.includes(TypeRole.ADMIN)) {
-        rest['permissions'] = this.preparePermissionsOutput(rawRole);
-      } else if (roles.includes(TypeUserRole.TIER_ADMIN)) {
-        rest['permissions'] = this.preparePermissionsOutput(rawRole);
-      }
-
-      result.push(rest);
-    });
-
-    return {
-      users: result,
-      total,
-    };
-  }
-
-  private preparePermissionsOutput(role: TypeRole) {
-    switch (role) {
-      case TypeRole.ADMIN: {
-        return 'All permissions';
-      }
-
-      case TypeRole.FRONT_DESK: {
-        return 'Front Desk';
-      }
-
-      case TypeRole.SECURITY: {
-        return 'Security';
-      }
-
-      case TypeRole.USER_MANAGER: {
-        return 'User Manager';
-      }
+  private getRolesForSearch(role: TypeFilterRole): TypeRole[] {
+    if (!role) {
+      return [];
     }
+
+    return role === 'TIER_ADMIN' ? TIER_ADMIN_OPTIONS : [TypeRole[role]];
   }
 
   private async getUsersPageWithAccessGroups(
     offset: number,
     limit: number,
     user: Express.User,
+    roles: TypeRole[],
   ) {
-    const [page, total] = await this.userRepository
+    let builder = this.userRepository
       .createQueryBuilder('user')
-      .leftJoin('user.companies', 'companies')
+      .leftJoinAndSelect(
+        'user.companies',
+        'companies',
+        'companies.isMain IS TRUE',
+      )
+      .leftJoinAndSelect('companies.company', 'company')
       .leftJoinAndSelect('user.accessGroups', 'accessGroups')
       .leftJoinAndSelect('accessGroups.accessGroup', 'accessGroup')
       .leftJoinAndSelect('user.roles', 'roles')
-      .leftJoinAndSelect('roles.permissions', 'permissions')
       .where('companies.companyId IN (:...companyIds)', {
-        companyIds: user['companies'].map((wrapper) => wrapper.companyId),
+        companyIds: user['companies'].map(
+          (wrapper: UserCompany) => wrapper.companyId,
+        ),
       })
       .andWhere('user.status != :status', { status: TypeUserStatus.ARCHIVED })
       .orderBy('user.fullName', 'ASC')
       .skip(offset)
-      .take(limit)
-      .getManyAndCount();
+      .take(limit);
+
+    if (roles?.length) {
+      builder = builder.andWhere('roles.value IN (:...roles)', { roles });
+    }
+
+    const [page, total] = await builder.getManyAndCount();
 
     const result = [];
 
@@ -210,7 +165,7 @@ export class UsersService {
         .map((accessGroup) => accessGroup.name);
       const createdAt = user.createdAt;
       const sanitized = this.sanitizeUserInfo(user);
-      const { company, ...rest } = sanitized;
+      const { phoneNumber, twoStepAuth, ...rest } = sanitized;
 
       rest['accessGroups'] = accessGroups;
       rest['createdAt'] = createdAt;
