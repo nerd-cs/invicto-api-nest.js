@@ -313,6 +313,10 @@ export class UsersService {
 
     if (cards && cards.length) {
       restUserAttributes['cards'] = cards;
+
+      if (!instantlyInvite) {
+        restUserAttributes['status'] = TypeUserStatus.INVITATION_NOT_SENT;
+      }
     }
 
     const savedUser = await this.userRepository.save(restUserAttributes);
@@ -894,9 +898,30 @@ export class UsersService {
   ) {
     const user = await this.getByIdAndAdmin(userId, admin, [
       ['user.cards', 'cards'],
+      ['user.accessGroups', 'accessGroups'],
+      ['accessGroups.accessGroup', 'accessGroup'],
     ]);
 
-    return (await this.cardService.createCards(dto.cards, user)).map((card) => {
+    const cards = await this.cardService.createCards(dto.cards, user);
+    let status;
+
+    if (dto.instantlyInvite) {
+      status = TypeUserStatus.PENDING;
+      this.sendInvitation(user);
+    } else {
+      status = TypeUserStatus.INVITATION_NOT_SENT;
+    }
+
+    this.userRepository.update(
+      {
+        id: user.id,
+      },
+      {
+        status,
+      },
+    );
+
+    return cards.map((card) => {
       const { user, ...rest } = card;
 
       return rest;

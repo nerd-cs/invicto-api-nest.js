@@ -25,6 +25,7 @@ export enum TypeUserStatus {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
   ARCHIVED = 'ARCHIVED',
+  INVITATION_NOT_SENT = 'INVITATION_NOT_SENT',
 }
 @Entity({ name: 'users' })
 export class User {

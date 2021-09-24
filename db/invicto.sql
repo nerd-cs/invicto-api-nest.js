@@ -86,7 +86,7 @@ create table company (
 );
 
 
-create type TYPE_USER_STATUS as enum ('PENDING',  'INCOMPLETE', 'ACTIVE', 'INACTIVE', 'ARCHIVED');
+create type TYPE_USER_STATUS as enum ('PENDING',  'INCOMPLETE', 'ACTIVE', 'INACTIVE', 'ARCHIVED', 'INVITATION_NOT_SENT');
 --
 -- Name: users; Type: TABLE; Schema: public;
 --
