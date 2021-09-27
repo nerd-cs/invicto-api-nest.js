@@ -66,6 +66,7 @@ export class HolidayService {
 
     if (updateHolidayDto.name && updateHolidayDto.name !== holiday.name) {
       await this.throwIfNameAlreadyTaken(updateHolidayDto.name);
+      holiday.name = updateHolidayDto.name;
     }
 
     holiday.recurrence = updateHolidayDto.recurrence || holiday.recurrence;
