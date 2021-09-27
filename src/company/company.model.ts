@@ -1,4 +1,10 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Location } from '../location/location.model';
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 import { UserCompany } from '../user-company/user-company.model';
@@ -25,10 +31,7 @@ export class Company {
   @Column('varchar', { name: 'country' })
   country: string;
 
-  @Column('timestamp with time zone', {
-    name: 'created_at',
-    default: () => 'now()',
-  })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   createdAt: Date;
 
   @OneToMany(() => Location, (location) => location.company)

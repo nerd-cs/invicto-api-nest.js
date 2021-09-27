@@ -7,6 +7,7 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Zone } from '../zone/zone.model';
 import { Location } from '../location/location.model';
@@ -34,10 +35,7 @@ export class Door {
   @ApiProperty({ enum: TypeDoorStatus, enumName: 'TypeDoorStatus' })
   status: TypeDoorStatus;
 
-  @Column('timestamp with time zone', {
-    name: 'updated_at',
-    default: () => 'now()',
-  })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
   @ApiModelProperty()
   updatedAt: Date;
 
