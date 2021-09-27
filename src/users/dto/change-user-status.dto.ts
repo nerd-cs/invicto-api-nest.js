@@ -5,6 +5,7 @@ import { TypeUserStatus } from '../users.model';
 export enum PartialUserStatus {
   INACTIVE = TypeUserStatus.INACTIVE,
   ARCHIVED = TypeUserStatus.ARCHIVED,
+  ACTIVE = TypeUserStatus.ACTIVE,
 }
 export class ChangeUserStatusDto {
   @IsNotEmpty()

@@ -705,9 +705,20 @@ export class UsersService {
       throw new ConstraintViolationException('Status is the same');
     }
 
-    user.status = newStatus;
+    await this.userRepository.update(
+      {
+        id: user.id,
+      },
+      {
+        status: newStatus,
+        updatedBy: { id: admin['id'] },
+      },
+    );
 
-    return this.sanitizeUserInfo(await this.userRepository.save(user));
+    return {
+      id: user.id,
+      status: newStatus,
+    };
   }
 
   async updateUserInfo(dto: UpdateUserDto, admin: Express.User) {

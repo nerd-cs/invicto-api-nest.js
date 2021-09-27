@@ -200,7 +200,7 @@ export class UsersController {
   @UseGuards(PermissionsGuard)
   @Permissions(TypePermission.USER_MANAGEMENT)
   @ApiCookieAuth()
-  @ApiOperation({ summary: 'Archive or deactivate user' })
+  @ApiOperation({ summary: 'Archive, activate or deactivate user' })
   @ApiOkResponse({ type: User, description: 'Successfully performed' })
   @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
   @ApiUnauthorizedResponse({ description: 'User is unauthorized' })
