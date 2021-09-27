@@ -6,6 +6,7 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { AccessGroupScheduleZone } from '../access-group-schedule-zone/access-group-schedule-zone.model';
 import { AccessGroup } from '../access-group/access-group.model';
@@ -27,10 +28,7 @@ export class Schedule {
   description: string;
 
   @ApiResponseProperty()
-  @Column('timestamp with time zone', {
-    name: 'updated_at',
-    default: () => 'now()',
-  })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
   updatedAt: Date;
 
   @ManyToOne(() => AccessGroup, (accessGroup) => accessGroup.schedules)

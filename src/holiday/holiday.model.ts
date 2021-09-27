@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { DoorHoliday } from '../door-holiday/door-holiday.model';
 import { ScheduleHoliday } from '../schedule-holiday/schedule-holiday.model';
 
@@ -37,10 +43,7 @@ export class Holiday {
   endDate: Date;
 
   @ApiProperty()
-  @Column('timestamp with time zone', {
-    name: 'updated_at',
-    default: () => 'now()',
-  })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
   updatedAt: Date;
 
   @OneToMany(

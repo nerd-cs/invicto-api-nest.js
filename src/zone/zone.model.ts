@@ -7,6 +7,7 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { AccessGroup } from '../access-group/access-group.model';
 import { Location } from '../location/location.model';
@@ -29,10 +30,7 @@ export class Zone {
   @ApiModelProperty({ required: false })
   description: string;
 
-  @Column('timestamp with time zone', {
-    name: 'updated_at',
-    default: () => 'now()',
-  })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
   @ApiModelProperty()
   updatedAt: Date;
 

@@ -6,6 +6,7 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Location } from '../location/location.model';
 import { Schedule } from '../schedule/schedule.model';
@@ -23,10 +24,7 @@ export class AccessGroup {
   @ApiModelProperty()
   name: string;
 
-  @Column('timestamp with time zone', {
-    name: 'updated_at',
-    default: () => 'now()',
-  })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
   updatedAt: Date;
 
   @Column('integer', { name: 'location_id' })

@@ -4,6 +4,7 @@ import {
   JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Location } from '../location/location.model';
 
@@ -23,10 +24,7 @@ export class Controller {
   @Column('enum', { name: 'status', enum: TypeControllerStatus })
   status: TypeControllerStatus;
 
-  @Column('timestamp with time zone', {
-    name: 'updated_at',
-    default: () => 'now()',
-  })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
   updatedAt: Date;
 
   @OneToOne(() => Location, (location) => location.controller)

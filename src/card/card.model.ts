@@ -1,6 +1,7 @@
 import { User } from '../users/users.model';
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -37,10 +38,7 @@ export class Card {
   @Column('boolean', { name: 'is_active', default: () => 'true' })
   isActive: boolean;
 
-  @Column('timestamp with time zone', {
-    name: 'created_at',
-    default: () => 'now()',
-  })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   createdAt: Date;
 
   @ManyToOne(() => User, (user) => user.cards)
