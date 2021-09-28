@@ -3,6 +3,7 @@ import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-prop
 import { AccessGroupInfo } from '../../access-group-schedule-zone/response/access-group-info.response';
 import { CardResponse } from '../../card/response/card.response';
 import { Company } from '../../company/company.model';
+import { DepartmentResponse } from '../../department/response/department.response';
 import { TypeUserRole } from '../dto/create-user.dto';
 import { TypeUserStatus } from '../users.model';
 
@@ -45,8 +46,11 @@ export class UserInfo {
   @ApiProperty()
   readonly updatedBy: string;
 
-  @ApiProperty()
-  readonly department: string;
+  @ApiProperty({ type: DepartmentResponse })
+  readonly department: DepartmentResponse;
+
+  @ApiProperty({ type: DepartmentResponse })
+  readonly costCenter: DepartmentResponse;
 
   @ApiProperty()
   readonly employeeNumber: number;

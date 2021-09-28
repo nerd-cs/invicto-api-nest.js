@@ -40,9 +40,12 @@ export class UpdateUserDto {
         !dto.phoneNumber &&
         !dto.companyId &&
         !dto.employeeNumber &&
-        !dto.department &&
+        !dto.departmentId &&
+        dto.departmentId !== null &&
         !dto.roleOption &&
-        !dto.email),
+        !dto.email &&
+        !dto.costCenterId &&
+        dto.costCenter !== null),
   )
   @ApiModelProperty({ required: false })
   readonly profilePicture: string | null;
@@ -59,9 +62,12 @@ export class UpdateUserDto {
         !dto.phoneNumber &&
         !dto.companyId &&
         !dto.employeeNumber &&
-        !dto.department &&
+        !dto.departmentId &&
+        dto.departmentId !== null &&
         !dto.roleOption &&
-        !dto.email),
+        !dto.email &&
+        !dto.costCenterId &&
+        dto.costCenter !== null),
   )
   @ApiModelProperty({ required: false })
   readonly fullName: string;
@@ -79,7 +85,10 @@ export class UpdateUserDto {
         !dto.companyId &&
         !dto.employeeNumber &&
         !dto.roleOption &&
-        !dto.department),
+        !dto.departmentId &&
+        dto.departmentId !== null &&
+        !dto.costCenterId &&
+        dto.costCenter !== null),
   )
   @ApiModelProperty({ required: false })
   readonly email: string;
@@ -95,9 +104,12 @@ export class UpdateUserDto {
         !dto.phoneNumber &&
         !dto.companyId &&
         !dto.employeeNumber &&
-        !dto.department &&
+        !dto.departmentId &&
+        dto.departmentId !== null &&
         !dto.roleOption &&
-        !dto.email),
+        !dto.email &&
+        !dto.costCenterId &&
+        dto.costCenter !== null),
   )
   @ApiProperty({
     enum: UserStatusForUpdate,
@@ -117,9 +129,12 @@ export class UpdateUserDto {
         !dto.phoneNumber &&
         !dto.companyId &&
         !dto.employeeNumber &&
-        !dto.department &&
+        !dto.departmentId &&
+        dto.departmentId !== null &&
         !dto.roleOption &&
-        !dto.email),
+        !dto.email &&
+        !dto.costCenterId &&
+        dto.costCenter !== null),
   )
   @ApiProperty({
     enum: TypeUserRole,
@@ -140,8 +155,11 @@ export class UpdateUserDto {
         !dto.phoneNumber &&
         !dto.companyId &&
         !dto.employeeNumber &&
-        !dto.department &&
-        !dto.email),
+        !dto.departmentId &&
+        dto.departmentId !== null &&
+        !dto.email &&
+        !dto.costCenterId &&
+        dto.costCenter !== null),
   )
   @ApiProperty({
     enum: TypeTierAdminOption,
@@ -165,9 +183,12 @@ export class UpdateUserDto {
         dto.profilePicture !== null &&
         !dto.companyId &&
         !dto.employeeNumber &&
-        !dto.department &&
+        !dto.departmentId &&
+        dto.departmentId !== null &&
         !dto.roleOption &&
-        !dto.email),
+        !dto.email &&
+        !dto.costCenterId &&
+        dto.costCenter !== null),
   )
   @ApiModelProperty({ required: false })
   readonly phoneNumber: string;
@@ -185,9 +206,12 @@ export class UpdateUserDto {
         !dto.employeeNumber &&
         !dto.profilePicture &&
         dto.profilePicture !== null &&
-        !dto.department &&
+        !dto.departmentId &&
+        dto.departmentId !== null &&
         !dto.roleOption &&
-        !dto.email),
+        !dto.email &&
+        !dto.costCenterId &&
+        dto.costCenter !== null),
   )
   @ApiModelProperty({ required: false })
   readonly companyId: number;
@@ -205,18 +229,19 @@ export class UpdateUserDto {
         !dto.companyId &&
         !dto.profilePicture &&
         dto.profilePicture !== null &&
-        !dto.department &&
+        !dto.departmentId &&
+        dto.departmentId !== null &&
         !dto.roleOption &&
-        !dto.email),
+        !dto.email &&
+        !dto.costCenterId &&
+        dto.costCenter !== null),
   )
   @ApiModelProperty({ required: false })
   readonly employeeNumber: number;
 
-  @IsString()
-  @Transform(({ value }) => value?.trim())
   @ValidateIf(
     (dto) =>
-      dto.department ||
+      dto.departmentId ||
       (!dto.fullName &&
         !dto.status &&
         !dto.role &&
@@ -226,8 +251,29 @@ export class UpdateUserDto {
         !dto.profilePicture &&
         dto.profilePicture !== null &&
         !dto.roleOption &&
-        !dto.email),
+        !dto.email &&
+        !dto.costCenterId &&
+        dto.costCenter !== null),
   )
   @ApiModelProperty({ required: false })
-  readonly department: string;
+  readonly departmentId: number | null;
+
+  @ValidateIf(
+    (dto) =>
+      dto.costCenterId ||
+      (!dto.fullName &&
+        !dto.status &&
+        !dto.role &&
+        !dto.phoneNumber &&
+        !dto.companyId &&
+        !dto.employeeNumber &&
+        !dto.profilePicture &&
+        dto.profilePicture !== null &&
+        !dto.roleOption &&
+        !dto.email &&
+        !dto.departmentId &&
+        dto.departmentId !== null),
+  )
+  @ApiModelProperty({ required: false })
+  readonly costCenterId: number | null;
 }

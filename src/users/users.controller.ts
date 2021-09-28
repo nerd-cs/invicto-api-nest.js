@@ -34,7 +34,7 @@ import { User } from './users.model';
 import { Request } from 'express';
 import { InvalidEntityInterceptor } from '../interceptor/invalid-entity.interceptor';
 import { CompleteRegistrationDto } from './dto/complete-registration.dto';
-import { isPositive } from 'class-validator';
+import { isNumber, isPositive, isString } from 'class-validator';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { UserPaginationRequestDto } from '../pagination/user-pagination-request.dto';
 import { CreateCollaboratorDto } from './dto/create-collaborator.dto';
@@ -146,7 +146,33 @@ export class UsersController {
     description: "User doesn't have permissions to access this resource",
   })
   updateUser(@Body() userDto: UpdateUserDto, @Req() request: Request) {
+    this.validateDtoForUpdate(userDto);
+
     return this.userService.updateUserInfo(userDto, request.user);
+  }
+
+  private validateDtoForUpdate(dto: UpdateUserDto) {
+    if (dto.profilePicture && !isString(dto.profilePicture)) {
+      throw new BadRequestException('profilePicture must be a valid string');
+    }
+
+    if (
+      dto.departmentId &&
+      (!isNumber(dto.departmentId) || !isPositive(dto.departmentId))
+    ) {
+      throw new BadRequestException(
+        'departmentId must be a valid positive number',
+      );
+    }
+
+    if (
+      dto.costCenterId &&
+      (!isNumber(dto.costCenterId) || !isPositive(dto.costCenterId))
+    ) {
+      throw new BadRequestException(
+        'costCenterId must be a valid positive number',
+      );
+    }
   }
 
   @Post('/collaborator')

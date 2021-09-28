@@ -11,6 +11,7 @@ import { TokenModule } from '../token/token.module';
 import { LocationModule } from '../location/location.module';
 import { UserAccessGroupModule } from '../user-access-group/user-access-group.module';
 import { UserCompanyModule } from '../user-company/user-company.module';
+import { DepartmentModule } from '../department/department.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { UserCompanyModule } from '../user-company/user-company.module';
     LocationModule,
     UserAccessGroupModule,
     UserCompanyModule,
+    DepartmentModule,
   ],
   providers: [UsersService],
   exports: [UsersService],

@@ -85,6 +85,22 @@ create table company (
 	primary key(id)
 );
 
+CREATE TABLE department (
+    id SERIAL NOT NULL,
+    name VARCHAR NOT NULL,
+    is_cost_center BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    company_id INT NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE (company_id, name),
+    CONSTRAINT fk_department_company
+    FOREIGN KEY (company_id)
+    REFERENCES company(id)
+    ON DELETE NO ACTION
+	ON UPDATE NO ACTION
+);
+CREATE INDEX fk_department_company_idx ON department(company_id ASC);
+CREATE UNIQUE INDEX department_u_name_company_idx ON department(name, company_id ASC);
 
 create type TYPE_USER_STATUS as enum ('PENDING',  'INCOMPLETE', 'ACTIVE', 'INACTIVE', 'ARCHIVED', 'INVITATION_NOT_SENT');
 --
@@ -100,7 +116,8 @@ CREATE TABLE public.users (
     employee_number integer,
     profile_picture bytea,
     job_title character varying,
-	department varchar NULL,
+	department_id INT NULL,
+	cost_center_id INT NULL,
     address character varying,
     city character varying,
     country character varying,
@@ -115,9 +132,21 @@ CREATE TABLE public.users (
 	FOREIGN KEY(updated_by)
 	REFERENCES users(id)
 	ON DELETE NO ACTION
+	ON UPDATE NO ACTION,
+	CONSTRAINT fk_users_department
+	FOREIGN KEY (department_id)
+	REFERENCES department(id)
+	ON DELETE NO ACTION
+	ON UPDATE NO ACTION,
+	CONSTRAINT fk_users_cost_center
+	FOREIGN KEY (cost_center_id)
+	REFERENCES department(id)
+	ON DELETE NO ACTION
 	ON UPDATE NO ACTION
 );
 CREATE INDEX fk_users_users_idx ON users(updated_by ASC);
+CREATE INDEX fk_users_department_idx ON users(department_id ASC);
+CREATE INDEX fk_users_cost_center_idx ON users(cost_center_id ASC);
 
 --
 -- Name: users_id_seq; Type: SEQUENCE; Schema: public;
