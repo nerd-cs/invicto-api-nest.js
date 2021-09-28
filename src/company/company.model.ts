@@ -8,6 +8,7 @@ import {
 import { Location } from '../location/location.model';
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 import { UserCompany } from '../user-company/user-company.model';
+import { Department } from '../department/department.model';
 
 @Entity('company')
 export class Company {
@@ -42,4 +43,9 @@ export class Company {
 
   @Column({ type: 'integer', select: false, update: false, insert: false })
   members: number;
+
+  @OneToMany(() => Department, (department) => department.company, {
+    cascade: true,
+  })
+  departments: Department[];
 }

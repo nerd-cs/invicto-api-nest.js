@@ -18,6 +18,7 @@ import { Token } from '../token/token.model';
 import { UserAccessGroup } from '../user-access-group/user-access-group.model';
 import { UserCompany } from '../user-company/user-company.model';
 import { Company } from '../company/company.model';
+import { Department } from '../department/department.model';
 
 export enum TypeUserStatus {
   PENDING = 'PENDING',
@@ -63,9 +64,15 @@ export class User {
   @ApiModelProperty({ required: false })
   jobTitle: string;
 
-  @Column('varchar', { name: 'department', nullable: true })
   @ApiModelProperty({ required: false })
-  department: string;
+  @ManyToOne(() => Department, (department) => department.costCenterUsers)
+  @JoinColumn([{ name: 'cost_center_id', referencedColumnName: 'id' }])
+  costCenter: Department;
+
+  @ApiModelProperty({ required: false })
+  @ManyToOne(() => Department, (department) => department.costCenterUsers)
+  @JoinColumn([{ name: 'department_id', referencedColumnName: 'id' }])
+  department: Department;
 
   @Column({ type: 'varchar', nullable: true })
   address: string;

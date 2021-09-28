@@ -1,5 +1,13 @@
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
+import { CreateDepartmentDto } from '../../department/dto/create-department.dto';
 
 export class CreateCompanyDto {
   @IsString()
@@ -26,4 +34,20 @@ export class CreateCompanyDto {
   @IsNotEmpty()
   @ApiModelProperty()
   readonly country: string;
+
+  @IsOptional()
+  @Type(() => CreateDepartmentDto)
+  @ApiModelProperty({ required: false })
+  readonly costCenter: CreateDepartmentDto;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateDepartmentDto)
+  @ApiModelProperty({
+    required: false,
+    isArray: true,
+    type: CreateDepartmentDto,
+  })
+  readonly departments: CreateDepartmentDto[];
 }

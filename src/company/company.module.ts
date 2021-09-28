@@ -4,9 +4,10 @@ import { Company } from './company.model';
 import { CompanyService } from './company.service';
 import { CompanyController } from './company.controller';
 import { UsersModule } from '../users/users.module';
+import { DepartmentModule } from '../department/department.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Company]), UsersModule],
+  imports: [TypeOrmModule.forFeature([Company]), UsersModule, DepartmentModule],
   providers: [CompanyService],
   controllers: [CompanyController],
 })

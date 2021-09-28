@@ -42,6 +42,8 @@ import { CreateUserCardsDto } from './dto/create-user-cards.dto';
 import { UserCompanyService } from '../user-company/user-company.service';
 import { Company } from '../company/company.model';
 import { UserCompany } from '../user-company/user-company.model';
+import { Department } from '../department/department.model';
+import { DepartmentService } from '../department/department.service';
 
 export const SALT_LENGTH = 10;
 export const BASE_64_PREFIX = 'data:image/jpg;base64,';
@@ -62,6 +64,7 @@ export class UsersService {
     private readonly locationService: LocationService,
     private readonly userAccessGroupService: UserAccessGroupService,
     private readonly userCompanyService: UserCompanyService,
+    private readonly departmentService: DepartmentService,
   ) {}
 
   async getUserByEmail(email: string): Promise<User> {
@@ -189,6 +192,8 @@ export class UsersService {
       )
       .leftJoinAndSelect('companies.company', 'company')
       .leftJoinAndSelect('user.roles', 'roles')
+      .leftJoinAndSelect('user.department', 'department')
+      .leftJoinAndSelect('user.costCenter', 'costCenter')
       .leftJoinAndSelect('user.accessGroups', 'accessGroups')
       .leftJoinAndSelect('accessGroups.accessGroup', 'accessGroup')
       // .leftJoinAndSelect('accessGroup.location', 'location') // TODO
@@ -219,7 +224,8 @@ export class UsersService {
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       updatedBy: user.updatedBy?.fullName,
-      department: user.department,
+      department: this.prepareDepartmentOutput(user.department),
+      costCenter: this.prepareDepartmentOutput(user.costCenter),
       phoneNumber: user.phoneNumber,
       employeeNumber: user.employeeNumber,
       accessGroups: await this.prepareAccessGroupsOutput(
@@ -227,6 +233,17 @@ export class UsersService {
         admin,
       ),
       cards: this.prepareCardsOutput(user.cards),
+    };
+  }
+
+  private prepareDepartmentOutput(department: Department) {
+    if (!department) {
+      return null;
+    }
+
+    return {
+      id: department.id,
+      name: department.name,
     };
   }
 
@@ -724,7 +741,11 @@ export class UsersService {
   async updateUserInfo(dto: UpdateUserDto, admin: Express.User) {
     const user = await this.getByIdAndAdmin(dto.id, admin, [
       ['user.roles', 'roles'],
+      ['user.companies', 'userCompanies'],
     ]);
+    let companyId = user.companies?.find(
+      (wrapper: UserCompany) => wrapper.isMain,
+    )?.companyId;
 
     if (dto.email && dto.email !== user.email) {
       await this.throwIfEmailAlreadyTaken(dto.email);
@@ -761,18 +782,56 @@ export class UsersService {
       }
     }
 
-    if (dto.companyId) {
+    if (dto.companyId && dto.companyId !== companyId) {
       this.validateCompany(dto.companyId, admin);
       await this.userCompanyService.updateUserCompany(user, dto.companyId);
+      companyId = dto.companyId;
+      user.department = null;
+      user.costCenter = null;
     }
 
     user.fullName = dto.fullName || user.fullName;
     user.status = dto.status ? TypeUserStatus[dto.status] : user.status;
     user.phoneNumber = dto.phoneNumber || user.phoneNumber;
     user.employeeNumber = dto.employeeNumber || user.employeeNumber;
-    user.department = dto.department || user.department;
+    user.department = await this.validateDepartment(
+      companyId,
+      dto.departmentId,
+    );
+    user.costCenter = await this.validateCostCenter(
+      companyId,
+      dto.costCenterId,
+    );
 
     return this.sanitizeUserInfo(await this.updateUser(user));
+  }
+
+  private async validateDepartment(
+    companyId: number,
+    departmentId: number,
+    costCenter = false,
+  ) {
+    if (!companyId) {
+      return;
+    }
+
+    if (!departmentId) {
+      if (departmentId !== undefined) {
+        return null;
+      }
+
+      return;
+    }
+
+    return await this.departmentService.getByIdAndCompany(
+      departmentId,
+      companyId,
+      costCenter,
+    );
+  }
+
+  private async validateCostCenter(companyId: number, costCenterId: number) {
+    return await this.validateDepartment(companyId, costCenterId, true);
   }
 
   preparePicture(picture: string) {
@@ -990,6 +1049,8 @@ export class UsersService {
         id: user.id,
         status: TypeUserStatus.ARCHIVED,
         updatedBy: { id: admin['id'] },
+        department: null,
+        costCenter: null,
       };
     });
 

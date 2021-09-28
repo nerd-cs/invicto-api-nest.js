@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { DepartmentService } from '../department/department.service';
 import { ConstraintViolationException } from '../exception/constraint-violation.exception';
 import { EntityAlreadyExistsException } from '../exception/entity-already-exists.exception';
 import { EntityNotFoundException } from '../exception/entity-not-found.exception';
@@ -17,6 +18,7 @@ export class CompanyService {
     @InjectRepository(Company)
     private readonly companyRepository: Repository<Company>,
     private readonly userService: UsersService,
+    private readonly departmentService: DepartmentService,
   ) {}
 
   async getAllCompanies(user: Express.User) {
@@ -53,14 +55,40 @@ export class CompanyService {
 
   async createCompany(dto: CreateCompanyDto, admin: Express.User) {
     await this.throwIfNameAlreadyTaken(dto.name);
+    const { costCenter, departments, ...rest } = dto;
 
-    const company = await this.companyRepository.save(dto);
+    let allDepartments = [];
+
+    if (departments?.length) {
+      allDepartments = departments;
+    }
+
+    if (costCenter) {
+      allDepartments.push({ name: costCenter.name, isCostCenter: true });
+    }
+
+    if (allDepartments.length) {
+      this.checkDepartmentNames(allDepartments);
+      rest['departments'] = allDepartments;
+    }
+
+    const company = await this.companyRepository.save(rest);
 
     await this.userService.linkNewCompany(company);
 
     admin['companies'].push({ companyId: company.id, company: company });
 
     return company;
+  }
+
+  private checkDepartmentNames(departments: { name: string }[]) {
+    const names = departments.map((department) => department.name);
+
+    names.forEach((name) => {
+      if (names.indexOf(name) !== names.lastIndexOf(name)) {
+        throw new ConstraintViolationException('Departments should be unique');
+      }
+    });
   }
 
   async updateCompany(dto: UpdateCompanyDto, admin: Express.User) {
@@ -99,6 +127,8 @@ export class CompanyService {
     const company = await this.getById(companyId);
 
     await this.userService.archiveAndUnlinkUsers(company, admin);
+
+    await this.departmentService.removeForCompany(company);
 
     const removed = await this.companyRepository.remove(company);
 

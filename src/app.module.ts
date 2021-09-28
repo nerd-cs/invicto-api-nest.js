@@ -30,6 +30,7 @@ import { DoorTimetableModule } from './door-timetable/door-timetable.module';
 import { DoorHolidayModule } from './door-holiday/door-holiday.module';
 import { DoorHolidayTimetableModule } from './door-holiday-timetable/door-holiday-timetable.module';
 import { HealthModule } from './health/health.module';
+import { DepartmentModule } from './department/department.module';
 
 @Module({
   imports: [
@@ -73,6 +74,7 @@ import { HealthModule } from './health/health.module';
     DoorHolidayModule,
     DoorHolidayTimetableModule,
     HealthModule,
+    DepartmentModule,
   ],
   controllers: [AuthController, UsersController, AppController],
   providers: [],
