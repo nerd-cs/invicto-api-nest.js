@@ -36,4 +36,7 @@ export class Department {
 
   @OneToMany(() => User, (user) => user.department)
   users: User[];
+
+  @Column({ type: 'integer', select: false, update: false, insert: false })
+  members: number;
 }
