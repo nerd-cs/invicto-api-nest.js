@@ -2,11 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DepartmentService } from '../department/department.service';
+import { AddDepartmentsDto } from '../department/dto/add-departments.dto';
+import { CreateDepartmentDto } from '../department/dto/create-department.dto';
+import { UpdateDepartmentsDto } from '../department/dto/update-departments.dto';
 import { ConstraintViolationException } from '../exception/constraint-violation.exception';
 import { EntityAlreadyExistsException } from '../exception/entity-already-exists.exception';
 import { EntityNotFoundException } from '../exception/entity-not-found.exception';
 import { PaginationRequestDto } from '../pagination/pagination-request.dto';
 import { UserCompany } from '../user-company/user-company.model';
+import { User } from '../users/users.model';
 import { UsersService } from '../users/users.service';
 import { Company } from './company.model';
 import { CreateCompanyDto } from './dto/create-company.dto';
@@ -57,17 +61,9 @@ export class CompanyService {
     await this.throwIfNameAlreadyTaken(dto.name);
     const { costCenter, departments, ...rest } = dto;
 
-    let allDepartments = [];
+    const allDepartments = this.prepareDepartments(costCenter, departments);
 
-    if (departments?.length) {
-      allDepartments = departments;
-    }
-
-    if (costCenter) {
-      allDepartments.push({ name: costCenter.name, isCostCenter: true });
-    }
-
-    if (allDepartments.length) {
+    if (allDepartments?.length) {
       this.checkDepartmentNames(allDepartments);
       rest['departments'] = allDepartments;
     }
@@ -79,6 +75,23 @@ export class CompanyService {
     admin['companies'].push({ companyId: company.id, company: company });
 
     return company;
+  }
+
+  private prepareDepartments(
+    costCenter: CreateDepartmentDto,
+    departments: CreateDepartmentDto[],
+  ) {
+    let allDepartments = [];
+
+    if (departments?.length) {
+      allDepartments = departments;
+    }
+
+    if (costCenter) {
+      allDepartments.push({ name: costCenter.name, isCostCenter: true });
+    }
+
+    return allDepartments;
   }
 
   private checkDepartmentNames(departments: { name: string }[]) {
@@ -103,6 +116,8 @@ export class CompanyService {
     company.city = dto.city || company.city;
     company.postalCode = dto.postalCode || company.postalCode;
     company.country = dto.country || company.country;
+    company.updatedBy = new User();
+    company.updatedBy.id = admin['id'];
 
     const updated = await this.companyRepository.save(company);
 
@@ -149,13 +164,99 @@ export class CompanyService {
     return await this.companyRepository.findOne({ where: { name: name } });
   }
 
-  async getById(companyId: number) {
-    const company = await this.companyRepository.findOne(companyId);
+  async getById(companyId: number, relations: string[] = undefined) {
+    const company = await this.companyRepository.findOne(companyId, {
+      relations: relations,
+    });
 
     if (!company) {
       throw new EntityNotFoundException({ companyId });
     }
 
     return company;
+  }
+
+  async getCompanyInfo(companyId: number) {
+    const company = await this.companyRepository
+      .createQueryBuilder('company')
+      .leftJoinAndSelect('company.updatedBy', 'updatedBy')
+      .where('company.id = :companyId', { companyId })
+      .getOne();
+
+    if (!company) {
+      throw new EntityNotFoundException({ companyId });
+    }
+
+    const { updatedBy, ...rest } = company;
+
+    rest['updatedBy'] = updatedBy?.fullName || null;
+
+    return rest;
+  }
+
+  async createDepartments(companyId: number, dto: AddDepartmentsDto) {
+    const company = await this.getById(companyId, ['departments']);
+
+    const departments = this.prepareDepartments(
+      dto.costCenter,
+      dto.departments,
+    );
+
+    this.checkDepartmentNames(
+      departments.concat(
+        company.departments.map((department) => {
+          return {
+            name: department.name,
+          };
+        }),
+      ),
+    );
+
+    return await this.departmentService.addDepartmentsForCompany(
+      company.id,
+      departments,
+    );
+  }
+
+  async updateDepartments(companyId: number, dto: UpdateDepartmentsDto) {
+    const company = await this.getById(companyId, ['departments']);
+
+    const removed = [];
+    const costCenters = [];
+
+    this.checkDepartmentNames(dto.departments);
+
+    company.departments.forEach((department) => {
+      if (
+        !dto.departments.find(
+          (departmentDto) => departmentDto.id === department.id,
+        )
+      ) {
+        if (department.isCostCenter) {
+          dto.departments.push({
+            id: department.id,
+            name: department.name,
+          });
+          costCenters.push(department.id);
+        } else {
+          removed.push(department.id);
+        }
+      }
+    });
+
+    await this.userService.unlinkDepartments(removed);
+    await this.departmentService.removeAll(removed);
+
+    return await this.companyRepository.save({
+      id: company.id,
+      departments: dto.departments.map((dto) => {
+        return {
+          id: dto.id,
+          name: dto.name,
+          companyId: companyId,
+          isCostCenter: costCenters.includes(dto.id),
+        };
+      }),
+    });
   }
 }

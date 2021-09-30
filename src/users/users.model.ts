@@ -148,4 +148,7 @@ export class User {
 
   @ApiModelProperty()
   company: Company;
+
+  @OneToMany(() => Company, (company) => company.updatedBy, { cascade: true })
+  updatedCompanies: Company[];
 }

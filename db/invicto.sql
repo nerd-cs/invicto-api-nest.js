@@ -82,8 +82,16 @@ create table company (
 	postal_code VARCHAR NOT NULL,
 	country VARCHAR NOT NULL,
 	created_at timestamp with time zone DEFAULT now() NOT NULL,
-	primary key(id)
+	updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+	updated_by INT NULL,
+	primary key(id),
+	CONSTRAINT fk_company_user
+	FOREIGN KEY (updated_by)
+	REFERENCES users(id)
+	ON UPDATE NO ACTION
+	ON DELETE NO ACTION
 );
+CREATE INDEX fk_company_user_idx ON company(updated_by ASC);
 
 CREATE TABLE department (
     id SERIAL NOT NULL,

@@ -1,0 +1,10 @@
+ALTER TABLE company
+ADD COLUMN updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+ADD COLUMN updated_by INT NULL,
+ADD CONSTRAINT fk_company_user
+FOREIGN KEY (updated_by)
+REFERENCES users(id)
+ON UPDATE NO ACTION
+ON DELETE NO ACTION;
+
+CREATE INDEX fk_company_user_idx ON company(updated_by ASC);

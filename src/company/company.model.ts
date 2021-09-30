@@ -2,13 +2,17 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Location } from '../location/location.model';
 import { ApiModelProperty } from '@nestjs/swagger/dist/decorators/api-model-property.decorator';
 import { UserCompany } from '../user-company/user-company.model';
 import { Department } from '../department/department.model';
+import { User } from '../users/users.model';
 
 @Entity('company')
 export class Company {
@@ -34,6 +38,13 @@ export class Company {
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp with time zone' })
   createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp with time zone' })
+  updatedAt: Date;
+
+  @ManyToOne(() => User, (user) => user.updatedCompanies)
+  @JoinColumn([{ name: 'updated_by', referencedColumnName: 'id' }])
+  updatedBy: User;
 
   @OneToMany(() => Location, (location) => location.company)
   locations: Location[];

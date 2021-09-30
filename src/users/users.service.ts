@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { TypeUserStatus, User } from './users.model';
 import { EntityNotFoundException } from '../exception/entity-not-found.exception';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import {
   CreateUserDto,
   TypeTierAdminOption,
@@ -1056,5 +1056,16 @@ export class UsersService {
 
     await this.userRepository.save(prepared);
     await this.userCompanyService.unlinkCompany(company, admin);
+  }
+
+  async unlinkDepartments(departmentIds: number[]) {
+    return await this.userRepository.update(
+      {
+        department: { id: In(departmentIds) },
+      },
+      {
+        department: null,
+      },
+    );
   }
 }

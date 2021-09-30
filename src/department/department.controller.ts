@@ -28,6 +28,8 @@ import { Permissions } from '../auth/decorator/permissions-auth.decorator';
 import { Request } from 'express';
 import { isPositive } from 'class-validator';
 import { DepartmentResponse } from './response/department.response';
+import { DepartmentPage } from './response/department-page.response';
+import { DepartmentPaginationRequestDto } from '../pagination/department-pagination-request.dto';
 
 @ApiCookieAuth()
 @ApiTags('department')
@@ -67,5 +69,26 @@ export class DepartmentController {
       companyId,
       costCenter,
     );
+  }
+
+  @ApiOperation({
+    summary: 'Get departments for selected company with pagination',
+  })
+  @ApiOkResponse({
+    description: 'Successfully retrieved',
+    type: DepartmentPage,
+  })
+  @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
+  @ApiUnauthorizedResponse({ description: 'User is not authorized' })
+  @ApiForbiddenResponse({
+    description: "User doesn't have permissions to access this resource",
+  })
+  @Permissions(TypePermission.COMPANY_MANAGEMENT)
+  @Get('/list')
+  getDeparmentsPage(
+    @Query() dto: DepartmentPaginationRequestDto,
+    @Req() request: Request,
+  ) {
+    return this.departmentService.getDepartmentsPage(dto, request.user);
   }
 }

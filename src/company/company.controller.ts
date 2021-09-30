@@ -37,6 +37,9 @@ import { isPositive } from 'class-validator';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { Company } from './company.model';
 import { CompanyPage } from './response/company-page.response';
+import { CompanyInfo } from './response/company-info.response';
+import { AddDepartmentsDto } from '../department/dto/add-departments.dto';
+import { UpdateDepartmentsDto } from '../department/dto/update-departments.dto';
 
 @ApiCookieAuth()
 @ApiTags('company')
@@ -60,6 +63,26 @@ export class CompanyController {
   @Get()
   getAllCompanies(@Req() request: Request) {
     return this.companyService.getAllCompanies(request.user);
+  }
+
+  @ApiOperation({ summary: 'Get description for selected company' })
+  @ApiOkResponse({
+    description: 'Successfully retrieved',
+    type: CompanyInfo,
+  })
+  @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
+  @ApiUnauthorizedResponse({ description: 'User is not authorized' })
+  @ApiForbiddenResponse({
+    description: "User doesn't have permissions to access this resource",
+  })
+  @Permissions(TypePermission.COMPANY_MANAGEMENT)
+  @Get(':companyId')
+  getCompanyDescription(@Param('companyId', ParseIntPipe) companyId: number) {
+    if (!isPositive(companyId)) {
+      throw new BadRequestException('companyId must be a positive number');
+    }
+
+    return this.companyService.getCompanyInfo(companyId);
   }
 
   @ApiOperation({ summary: 'Get list of companies with pagination' })
@@ -87,6 +110,47 @@ export class CompanyController {
   @Post()
   createCompany(@Body() dto: CreateCompanyDto, @Req() request: Request) {
     return this.companyService.createCompany(dto, request.user);
+  }
+
+  @ApiOperation({ summary: 'Create new departments' })
+  @ApiOkResponse({ description: 'Successfully created' })
+  @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
+  @ApiUnauthorizedResponse({ description: 'User is not authorized' })
+  @ApiForbiddenResponse({
+    description: "User doesn't have permissions to access this resource",
+  })
+  @Permissions(TypePermission.COMPANY_MANAGEMENT)
+  @HttpCode(HttpStatus.OK)
+  @Post('/:companyId/department')
+  createDepartments(
+    @Body() dto: AddDepartmentsDto,
+    @Param('companyId', ParseIntPipe) companyId: number,
+  ) {
+    if (!isPositive(companyId)) {
+      throw new BadRequestException('companyId must be a positive number');
+    }
+
+    return this.companyService.createDepartments(companyId, dto);
+  }
+
+  @ApiOperation({ summary: 'Update company departments' })
+  @ApiOkResponse({ description: 'Successfully updated' })
+  @ApiBadRequestResponse({ description: 'Invalid format for input parameters' })
+  @ApiUnauthorizedResponse({ description: 'User is not authorized' })
+  @ApiForbiddenResponse({
+    description: "User doesn't have permissions to access this resource",
+  })
+  @Permissions(TypePermission.COMPANY_MANAGEMENT)
+  @Put('/:companyId/department')
+  updateDepartments(
+    @Body() dto: UpdateDepartmentsDto,
+    @Param('companyId', ParseIntPipe) companyId: number,
+  ) {
+    if (!isPositive(companyId)) {
+      throw new BadRequestException('companyId must be a positive number');
+    }
+
+    return this.companyService.updateDepartments(companyId, dto);
   }
 
   @ApiOperation({ summary: 'Update the existing company' })
