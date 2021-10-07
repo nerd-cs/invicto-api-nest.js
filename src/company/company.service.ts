@@ -29,10 +29,7 @@ export class CompanyService {
     return user['companies']
       .map((wrapper: UserCompany) => wrapper.company)
       .map((company: Company) => {
-        return {
-          id: company.id,
-          name: company.name,
-        };
+        return company;
       });
   }
 
